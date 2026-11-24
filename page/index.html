@@ -211,6 +211,26 @@
   .bolo.apagado::before { display: none; }
   .bolo:focus-visible { outline: 2px dashed var(--gold-dark); outline-offset: 4px; }
   canvas#baloes { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  /* --- Halloween --- */
+  body.halloween { background: radial-gradient(ellipse 55% 40% at 50% 100%, rgba(110,255,140,.10), transparent 70%), radial-gradient(ellipse at 50% 40%, #120a1c 0%, #06030a 70%); }
+  body.halloween .fogueira::before { background: radial-gradient(ellipse at 50% 80%, rgba(110,255,150,.22), transparent 65%); }
+  .abobora { position: relative; width: 48px; height: 44px; margin: 0 2px 2px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .abobora canvas { width: 48px; height: 44px; display: block; image-rendering: pixelated; }
+  .abobora::before { content: ""; position: absolute; left: 50%; top: 55%; width: 70px; height: 60px; transform: translate(-50%, -50%); pointer-events: none;
+                     background: radial-gradient(circle, rgba(255,170,60,.28), transparent 65%); animation: pulsar 1.6s steps(3) infinite; }
+  .abobora:focus-visible { outline: 2px dashed var(--gold-dark); outline-offset: 4px; }
+  canvas#fantasma { position: absolute; right: -10px; bottom: 26px; width: 40px; height: 44px; z-index: 0; image-rendering: pixelated; opacity: 0; pointer-events: none; }
+  canvas#nevoa { position: absolute; left: 0; bottom: -14px; width: 100%; height: 48px; z-index: 2; pointer-events: none; image-rendering: pixelated; }
+  canvas#saci { position: absolute; left: 0; bottom: 0; width: 48px; height: 88px; z-index: 3; pointer-events: none; image-rendering: pixelated; }
+  canvas#morcegos, canvas#doces { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  canvas#morcegos { z-index: 0; } canvas#doces { z-index: 3; }
+  canvas#fantasma-grande { position: fixed; left: 50%; top: 45%; width: 200px; height: 220px; margin: -110px 0 0 -100px; z-index: 6; pointer-events: none; image-rendering: pixelated; }
+  canvas#fantasma-grande.assusta { animation: assusta 1.5s steps(10) forwards; }
+  @keyframes assusta { 0% { transform: scale(.1); opacity: 0; } 25% { transform: scale(1.25); opacity: 1; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+  body.pisca main { animation: piscatela .9s steps(1); }
+  @keyframes piscatela { 0%, 100% { filter: none; } 15% { filter: invert(1) hue-rotate(180deg); } 35% { filter: none; } 55% { filter: invert(1); } 75% { filter: none; } }
+  .akali.foge { transform: translateX(110vw); transition: transform .9s steps(9); }
+  .akali.volta { transition: transform .9s steps(9); }
   /* --- Easter --- */
   .cesta { width: 56px; height: 36px; margin: 0 2px 2px; }
   .cesta canvas { width: 56px; height: 36px; display: block; }
@@ -297,14 +317,20 @@
 <canvas id="baloes" aria-hidden="true" hidden></canvas>
 <canvas id="petalas" aria-hidden="true" hidden></canvas>
 <div class="ovos-placar" id="ovos-placar" hidden></div>
+<canvas id="morcegos" aria-hidden="true" hidden></canvas>
+<canvas id="doces" aria-hidden="true" hidden></canvas>
+<canvas id="fantasma-grande" width="10" height="11" aria-hidden="true" hidden></canvas>
 <main>
   <div class="cena">
     <canvas id="flores" aria-hidden="true" hidden></canvas>
     <canvas id="coelho" width="14" height="10" aria-hidden="true" hidden></canvas>
+    <canvas id="nevoa" aria-hidden="true" hidden></canvas>
+    <canvas id="saci" width="12" height="22" aria-hidden="true" hidden></canvas>
     <div class="arvore" id="arvore" aria-hidden="true" hidden><canvas id="pinheiro" width="21" height="36"></canvas></div>
     <div class="guardia" aria-hidden="true"><canvas id="guardia" width="16" height="22"></canvas></div>
+    <button class="abobora" id="abobora" type="button" aria-label="Abóbora: doces ou travessuras?" hidden><canvas id="aboboracv" width="12" height="11"></canvas></button>
     <div class="cesta" id="cesta" aria-hidden="true" hidden><canvas id="cestacv" width="14" height="9"></canvas></div>
-    <div class="fogueira" aria-hidden="true"><canvas id="fogo" width="42" height="44"></canvas></div>
+    <div class="fogueira" aria-hidden="true"><canvas id="fantasma" width="10" height="11" hidden></canvas><canvas id="fogo" width="42" height="44"></canvas></div>
     <button class="bolo" id="bolo" type="button" aria-label="Apagar a velinha" hidden><canvas id="bolocv" width="15" height="16"></canvas></button>
     <button class="akali" id="akali" type="button" aria-label="Fazer carinho na Akali"><canvas id="gata" width="34" height="22"></canvas></button>
   </div>
@@ -436,6 +462,8 @@
   }
   var PASCOA = diasAtePascoa();
   var ESPECIAL = {
+    halloween: MES === 9 && DIA >= 25,     // Oct 25-31: Halloween decorations
+    dia31: MES === 9 && DIA === 31,        // Oct 31: Halloween + Saci Day (trick-or-treat, the Saci)
     pascoa: !!PASCOA,                     // Good Friday to Easter Sunday: decorations
     domingoPascoa: !!PASCOA && PASCOA.dias === 0,   // Easter Sunday
     cacaOvos: !!PASCOA,                   // egg hunt: Good Friday to Easter Sunday (progress carries over the three days)
@@ -601,6 +629,9 @@
         return ['O coelho já começou a esconder ovos pela página, {n}... são 5 até domingo, sem pressa.',
                 'Vi um coelho rondando a fogueira, {n}. Ele escondeu 4 ovos por aqui e ainda deve deixar mais um.'][Math.floor(Math.random() * 2)];
       }
+      if (ESPECIAL.dia31) return ['Feliz Halloween, {n}! Toque na abóbora... se tiver coragem.', 'Hoje também é Dia do Saci, {n}. Cuidado com redemoinhos!'][Math.floor(Math.random() * 2)];
+      if (ESPECIAL.halloween && Math.random() < .6)
+        return ['A noite está estranha hoje, {n}... a chama mudou de cor.', 'Ouvi passos lá fora, {n}. Fique perto da fogueira.', 'Morcegos rondam o santuário esta noite, {n}.'][Math.floor(Math.random() * 3)];
       if (ESPECIAL.natal) return 'Feliz Natal, {n}! Que a chama aqueça esta casa.';
       if (ESPECIAL.anoNovo) return 'Feliz Ano Novo, {n}! Que a chama nunca se apague.';
       return null;
@@ -638,6 +669,22 @@
     window.novaFalaGuardia = function (t) {
       var eu = window.quemEsta && window.quemEsta(); if (!eu) return;
       falaGuardia = t.replace(/\{n\}/g, eu).replace(/\{o\}/g, pessoas[eu]);
+    };
+
+    // the keeper asks something with RPG-style options (e.g. trick or treat)
+    window.perguntaGuardia = function (t, ops) {
+      if (caixa.classList.contains('escolhendo') || !falaGuardia) return false;
+      clearTimeout(volta); rotulo.textContent = 'Guardiã da Chama'; trocar.hidden = true; opcoes.hidden = true;
+      escrever(t, function () {
+        opcoes.innerHTML = ''; opcoes.classList.add('carta-botao');
+        ops.forEach(function (o) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = o.rotulo;
+          b.addEventListener('click', function () { opcoes.hidden = true; o.acao(); });
+          opcoes.appendChild(b);
+        });
+        opcoes.hidden = false;
+      });
+      return true;
     };
 
     // Akali "speaks" for a few seconds, then the keeper resumes
@@ -714,6 +761,10 @@
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
+      if (ESPECIAL.halloween) {  // Halloween: a little witch hat
+        var CH = [".......kK.", "......kKK.", ".....kKKK.", "....kKRRK.", "..kKKKKKKKk", ".kkkkkkkkkk"], CP = { K: '#7a58b0', k: '#54398a', R: '#e8761a' };
+        CH.forEach(function (lin, yy) { for (var i = 0; i < lin.length; i++) if (CP[lin[i]]) px(1 + i, yy, CP[lin[i]]); });
+      }
       if (ESPECIAL.pascoa) {     // Easter: bunny-ear headband
         [[5,0,'W'],[6,0,'W'],[5,1,'W'],[6,1,'n'],[5,2,'W'],[6,2,'n'],[5,3,'W'],[6,3,'W'],
          [9,0,'W'],[10,0,'W'],[9,1,'W'],[10,1,'n'],[9,2,'W'],[10,2,'n'],[9,3,'W'],[10,3,'W'],
@@ -817,6 +868,17 @@
     }
     addEventListener('mousemove', function (ev) { seguir(ev.clientX, ev.clientY); });
     window.akaliOlhar = function (cx, cy) { seguir(cx, cy, true); };
+    // startled by a ghost: hiss and swat (does not count on the scoreboard)
+    window.akaliSibila = function () {
+      acordar(true); tapa = true; desenhar(); flutuar('pa', 'Hsss!', -14, 0);
+      btn.classList.remove('tremor'); void btn.offsetWidth; btn.classList.add('tremor');
+      setTimeout(function () { tapa = false; desenhar(); }, 380); dormirDepois(4000);
+    };
+    // runs off the scene for a few seconds (Halloween prank)
+    window.akaliFoge = function (ms) {
+      acordar(true); flutuar('pa', 'Hsss!', -14, 0); btn.classList.remove('volta'); btn.classList.add('foge');
+      setTimeout(function () { btn.classList.remove('foge'); btn.classList.add('volta'); dormirDepois(3000); }, ms || 4000);
+    };
     addEventListener('touchstart', function (ev) { var t = ev.touches[0]; if (t) seguir(t.clientX, t.clientY, true); }, { passive: true });
 
     // --- purring: vibration + "rrrr" + synthesized sound (only after a click, never on its own) ---
@@ -1084,6 +1146,139 @@
     });
   })();
 
+  // ---------- Halloween (Oct 25-31): ghostly flame, pumpkin, bats, fog, peeking ghost, witch hat;
+  //            on Oct 31 (also Saci Day): trick-or-treat at the pumpkin and the Saci hopping by ----------
+  (function () {
+    if (!ESPECIAL.halloween) return;
+    document.body.classList.add('halloween');
+    var SPR = {"abobora": [".....gg.....", "......G.....", "..oOOoOOOo..", ".oOOOoOOOOo.", "oOYYOoOOYYOo", "oOyYOoOOyYOo", "oOOOOYOOOOOo", "oOYOYOYOYOOo", "oOOyOyOyOyOo", ".oOOOoOOOOo.", "..ooDoDDoo.."], "morcego": [["k.......k", "kk.KKK.kk", "kkKRKRKkk", "..KKKKK..", "...K.K..."], [".........", "...KKK...", "..KRKRK..", ".kKKKKKk.", "kk.K.K.kk"]], "fantasma": ["...WWWW...", "..WWWWWW..", ".WWWWWWWW.", ".WWeWWeWW.", ".WWWWWWWW.", ".WWWkkWWW.", ".WWWWWWWW.", ".WWWWWWWW.", ".WwWWWWwW.", ".WW.WW.WW.", "..w..w..w."], "saci": [["...CC....", "..CCCc...", ".CCCCcc..", "..SSSS...", "..SeSSs..", "..SSSS.P.", "...SS.P..", "..sSSs...", ".sSRRSs..", ".s.RR.s..", "...SS....", "...SS....", "...SS....", "..BBB...."], ["...CC....", "..CCCc...", ".CCCCcc..", "..SSSS...", "..SeSSs..", "..SSSS.P.", "...SS.P..", "..sSSs...", ".sSRRSs..", ".s.RR.s..", "...SS....", "...S.S...", "..BB.....", "........."]], "doces": {"bala": [".YY.", "YRRY", ".YY."], "pirulito": [".CC.", "CWCC", "CCWC", ".CC.", "..b.", "..b."], "chocolate": ["BBBB", "BbBb", "BBBB"]}, "P": {"O": "#e8761a", "o": "#c75a12", "D": "#8a3a0c", "G": "#4f8a3a", "g": "#3d6e2c", "Y": "#ffe066", "y": "#ffb347", "K": "#1c1426", "k": "#2e2240", "R": "#a02030", "W": "#eef0f8", "w": "#b8bfd6", "e": "#1b1512", "S": "#5a3a24", "s": "#7a5232", "C": "#d02a2a", "c": "#a01818", "P": "#8a5a32", "f": "#cfc6b8", "B": "#3d2a1a", "b": "#6a4a2a"}};
+    var MORC = { K: '#5a4878', k: '#43355e', R: '#ff4a4a' };
+    function pinta(cv, L, pal, ox, oy) {
+      var x = cv.getContext('2d');
+      L.forEach(function (lin, y) { for (var i = 0; i < lin.length; i++) if (pal[lin[i]]) { x.fillStyle = pal[lin[i]]; x.fillRect((ox || 0) + i, (oy || 0) + y, 1, 1); } });
+    }
+    var cena = document.querySelector('.cena');
+
+    // pumpkin lantern with a flickering carved face
+    var ab = document.getElementById('abobora'), abc = document.getElementById('aboboracv'), tAb = 0; ab.hidden = false;
+    function desenharAbobora() {
+      var x = abc.getContext('2d'); x.clearRect(0, 0, 12, 11);
+      var pal = Object.assign({}, SPR.P); if (tAb % 3 === 1) { pal.Y = '#fff3a0'; pal.y = '#ffd060'; } else if (tAb % 3 === 2) { pal.Y = '#ffcc40'; pal.y = '#ff9a2e'; }
+      pinta(abc, SPR.abobora, pal); tAb++;
+    }
+    desenharAbobora(); if (!quieto) setInterval(desenharAbobora, 280);
+    if (window.ajustarCena) window.ajustarCena();
+
+    // bats crossing the sky now and then
+    var cm = document.getElementById('morcegos'), xm = cm.getContext('2d'), morcegos = [], dpr, W, H, P;
+    function medir() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = cm.width = innerWidth * dpr; H = cm.height = innerHeight * dpr; P = 4 * dpr; }
+    medir(); addEventListener('resize', medir); cm.hidden = false;
+    var sprMorc = SPR.morcego.map(function (L) { var c = document.createElement('canvas'); c.width = 9; c.height = 5; pinta(c, L, MORC); return c; });
+    function revoada() {
+      var n = 2 + Math.floor(Math.random() * 3), daEsq = Math.random() < .5, y0 = H * (.08 + Math.random() * .3);
+      for (var i = 0; i < n; i++) morcegos.push({ x: daEsq ? -40 * dpr - i * 30 * dpr : W + 40 * dpr + i * 30 * dpr, y: y0 + i * 14 * dpr, v: (daEsq ? 1 : -1) * (2.2 + Math.random()) * dpr, f: Math.random() * 6 });
+    }
+    function voar() {
+      xm.clearRect(0, 0, W, H); xm.imageSmoothingEnabled = false;
+      morcegos = morcegos.filter(function (m) { return m.x > -80 * dpr && m.x < W + 80 * dpr; });
+      morcegos.forEach(function (m) {
+        m.x += m.v; m.f += .25;
+        xm.drawImage(sprMorc[Math.floor(m.f) % 2], Math.round(m.x / P) * P, Math.round((m.y + Math.sin(m.f * .4) * 10 * dpr) / P) * P, 9 * P, 5 * P);
+      });
+      requestAnimationFrame(voar);
+    }
+    if (quieto) { revoada(); morcegos.forEach(function (m, i) { m.x = W * (.6 + i * .06); }); xm.imageSmoothingEnabled = false; morcegos.forEach(function (m) { xm.drawImage(sprMorc[0], m.x, m.y, 9 * P, 5 * P); }); }
+    else { revoada(); voar(); (function agendar() { setTimeout(function () { if (!document.hidden) revoada(); agendar(); }, 9000 + Math.random() * 9000); })(); }
+
+    // low purple fog drifting across the ground of the scene
+    var cn = document.getElementById('nevoa'), xn = cn.getContext('2d'), tn = 0; cn.hidden = false;
+    function nevoa() {
+      cn.width = Math.ceil(cena.scrollWidth / 4); cn.height = 12; xn.clearRect(0, 0, cn.width, cn.height);
+      for (var x = 0; x < cn.width; x++) for (var y = 0; y < 12; y++) {
+        var d = Math.sin(x * .17 + tn * .05) + Math.sin(x * .07 - tn * .03 + y) + Math.sin(y * .9 + x * .03 + tn * .02);
+        var a = (d + 1.5) / 6 * (y / 12);
+        if (a > .12) { xn.fillStyle = 'rgba(170,140,220,' + Math.min(.35, a).toFixed(2) + ')'; xn.fillRect(x, y, 1, 1); }
+      }
+      tn++;
+    }
+    nevoa(); if (!quieto) setInterval(nevoa, 140);
+
+    // a ghost peeks from behind the fire; Akali hisses and swats at it
+    var cf = document.getElementById('fantasma'); pinta(cf, SPR.fantasma, SPR.P);
+    function espiar() {
+      // peeks out from the right side of the fire: slides out and fades in, lingers, then slips back
+      cf.hidden = false; var passo = 0, subida = [[-16, 0], [-12, .3], [-8, .55], [-3, .8], [0, .9], [2, .9], [2, .9], [2, .9], [2, .9], [2, .9], [2, .9], [0, .9], [-4, .7], [-8, .45], [-12, .2], [-16, 0]];
+      (function anima() {
+        cf.style.transform = 'translate(' + subida[passo][0] + 'px,' + (passo % 4 < 2 ? 0 : -2) + 'px)'; cf.style.opacity = subida[passo][1];
+        if (passo === 6 && window.akaliSibila) window.akaliSibila();
+        if (++passo < subida.length) setTimeout(anima, 110); else cf.hidden = true;
+      })();
+    }
+    if (!quieto) { setTimeout(espiar, 6000); (function agendar() { setTimeout(function () { if (!document.hidden) espiar(); agendar(); }, 20000 + Math.random() * 15000); })(); }
+
+    // candy rain (treat)
+    var cd = document.getElementById('doces'), xd = cd.getContext('2d');
+    var sprDoces = Object.keys(SPR.doces).map(function (k) { var L = SPR.doces[k], c = document.createElement('canvas'); c.width = L[0].length; c.height = L.length; pinta(c, L, SPR.P); return c; });
+    function chuvaDeDoces() {
+      cd.hidden = false; var d2 = Math.min(window.devicePixelRatio || 1, 2), W2 = cd.width = innerWidth * d2, H2 = cd.height = innerHeight * d2, P2 = 5 * d2, pecas = [], fim = performance.now() + 6000;
+      for (var i = 0; i < 70; i++) pecas.push({ x: Math.random() * W2, y: -Math.random() * H2 * .8, v: (2 + Math.random() * 2.5) * d2, s: sprDoces[i % sprDoces.length], f: Math.random() * 6 });
+      (function quadro(agora) {
+        xd.clearRect(0, 0, W2, H2); xd.imageSmoothingEnabled = false;
+        pecas.forEach(function (p) { p.y += p.v; p.f += .1; if (p.y > H2 && agora < fim) p.y = -P2 * 6; xd.drawImage(p.s, Math.round((p.x + Math.sin(p.f) * 8 * d2) / P2) * P2, Math.round(p.y / P2) * P2, p.s.width * P2, p.s.height * P2); });
+        if (agora < fim || pecas.some(function (p) { return p.y < H2; })) requestAnimationFrame(quadro); else { xd.clearRect(0, 0, W2, H2); cd.hidden = true; }
+      })(performance.now());
+    }
+
+    // tricks: screen flash, a big ghost jump scare, or Akali running off
+    function travessura() {
+      var r = Math.floor(Math.random() * 3);
+      if (r === 0) { document.body.classList.remove('pisca'); void document.body.offsetWidth; document.body.classList.add('pisca'); return 'Travessura! Hehehe... a chama piscou.'; }
+      if (r === 1) {
+        var g = document.getElementById('fantasma-grande'); pinta(g, SPR.fantasma, SPR.P); g.hidden = false; g.classList.remove('assusta'); void g.offsetWidth; g.classList.add('assusta');
+        setTimeout(function () { g.hidden = true; }, 1600); return 'BUU! Travessura!';
+      }
+      if (window.akaliFoge) window.akaliFoge(4000); return 'Travessura! Até a Akali fugiu de medo...';
+    }
+    ab.addEventListener('click', function () {
+      var eu = window.quemEsta && window.quemEsta();
+      if (!ESPECIAL.dia31) { if (window.akaliFala) window.akaliFala('Shhh... a abóbora só acorda no dia 31' + (eu ? ', ' + eu : '') + '.', 'Guardiã da Chama'); return; }
+      if (window.perguntaGuardia) window.perguntaGuardia('Doces ou travessuras' + (eu ? ', ' + eu : '') + '?', [
+        { rotulo: 'Doces 🍬', acao: function () { chuvaDeDoces(); if (window.akaliFala) window.akaliFala('Doces para você' + (eu ? ', ' + eu : '') + '! 🍬', 'Guardiã da Chama'); } },
+        { rotulo: 'Travessuras 👻', acao: function () { var t = travessura(); if (window.akaliFala) window.akaliFala(t, 'Guardiã da Chama'); } }
+      ]);
+    });
+
+    // Oct 31 is also Saci Day: the Saci hops across on one leg, puffing his pipe, and vanishes in a whirlwind
+    if (!ESPECIAL.dia31) return;
+    var cs = document.getElementById('saci'), xs = cs.getContext('2d');
+    function saci() {
+      cs.hidden = false; var fim = cena.scrollWidth + 20, xpos = fim, quadro = 0, fumaca = [], girando = 0, pararEm = fim * (.08 + Math.random() * .2);
+      (function passo() {
+        xs.clearRect(0, 0, 12, 22);
+        if (!girando) {
+          quadro++; xpos -= 7; var pulo = quadro % 2 ? 0 : -3;
+          if (quadro % 3 === 0) fumaca.push({ x: 8, y: 5, v: 0 });
+          pinta(cs, SPR.saci[quadro % 2], SPR.P, 1, 8 + pulo);
+          if (xpos < pararEm) girando = 1;
+        } else {                                           // whirlwind: a spinning funnel of dust
+          for (var k = 0; k < 14; k++) {
+            var y = 21 - k, raio = 1 + k * .32, ang = girando * .9 + k * .8;
+            xs.fillStyle = k % 3 ? '#b8a68a' : '#8a7a62'; xs.fillRect(Math.round(6 + Math.cos(ang) * raio), y, 1, 1);
+            xs.fillStyle = '#d8c8aa'; xs.fillRect(Math.round(6 - Math.cos(ang) * raio), y, 1, 1);
+          }
+          if (girando < 4) pinta(cs, SPR.saci[0], SPR.P, 1, 8 - girando);
+          girando++;
+        }
+        fumaca = fumaca.filter(function (f) { return f.y > 0; });
+        fumaca.forEach(function (f) { f.y -= .7; f.x += .3; xs.fillStyle = 'rgba(210,210,210,.7)'; xs.fillRect(Math.round(f.x), Math.round(f.y), 1, 1); });
+        cs.style.transform = 'translateX(' + Math.round(xpos) + 'px)';
+        var r = cs.getBoundingClientRect(); if (window.akaliOlhar) window.akaliOlhar(r.left + r.width / 2, r.top + r.height / 2);
+        if (girando < 14) setTimeout(passo, 150); else { xs.clearRect(0, 0, 12, 22); cs.hidden = true; }
+      })();
+    }
+    if (!quieto) { setTimeout(saci, 10000); (function agendar() { setTimeout(function () { if (!document.hidden) saci(); agendar(); }, 60000 + Math.random() * 30000); })(); }
+  })();
+
   // ---------- Easter (Good Friday to Sunday): basket, hopping bunny, Akali's bunny ears; egg hunt on Sunday ----------
   (function () {
     if (!ESPECIAL.pascoa) return;
@@ -1270,7 +1465,8 @@
   (function () {
     var c = document.getElementById('fogo'), x = c.getContext('2d');
     var W = 42, H = 44, FW = 26, FH = 34, ox = 8, oy = 2;   // fire area inside the canvas
-    var pal = ESPECIAL.maes ? ['#00000000','#3a0814','#5a1022','#7a1832','#9a2244','#b82e58','#d43c6c',
+    var pal = ESPECIAL.halloween ? ['#00000000','#12061e','#1c0a30','#260e44','#301256','#3a1868','#3e2a7a',
+               '#2f5a6e','#2f7a5e','#38a05a','#48c060','#62d670','#7fe68a','#9cf0a4','#b8f6be','#d2fad6','#e8fdea','#f8fff9'] : ESPECIAL.maes ? ['#00000000','#3a0814','#5a1022','#7a1832','#9a2244','#b82e58','#d43c6c',
                '#e65080','#f06694','#f77ca6','#fb92b6','#fda6c4','#feb8d0','#ffc8da','#ffd8e4','#ffe6ee','#fff2f6','#fffbfc'] : ['#00000000','#3a0a04','#5a1206','#7a1a08','#9a240a','#b8320c','#d4420e',
                '#e65412','#f06818','#f77d1e','#fb9226','#fda732','#feba44','#ffcc5a',
                '#ffdb76','#ffe896','#fff2ba','#fffbe0'];

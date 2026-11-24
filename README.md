@@ -69,6 +69,11 @@ A single HTML file with no dependencies besides two Google Fonts.
   front of the keeper, with a counter and a celebration when all five are found
   (progress kept per device and per year). Once all five are found, the keeper offers to
   play again, and the counter becomes a restart button (in preview mode it always is).
+- **Halloween** (Oct 25-31): a green-and-purple ghostly flame, a flickering jack-o'-lantern,
+  bats crossing the sky, purple fog over the ground, a ghost peeking from behind the fire
+  (Akali hisses and swats at it) and a witch hat on Akali. On Oct 31, also Brazil's Saci
+  Day, tapping the pumpkin starts trick-or-treat (a candy rain, or one of three pranks) and
+  the Saci hops by on one leg, puffing his pipe, before vanishing in a whirlwind.
 - **Mother's Day** has its own, gentler look: falling petals, flowers sprouting along the
   ground of the scene, a rose-tinted flame, a bouquet in the keeper's hands, a flower by
   Akali's ear, and an optional letter (from `config.js`) that the keeper hands over and
