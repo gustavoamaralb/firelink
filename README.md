@@ -61,7 +61,8 @@ A single HTML file with no dependencies besides two Google Fonts.
   person, shared across devices.
 - **Day and night:** a starry sky at night, warm light in the morning.
 - **Special dates:** on birthdays, pixel balloons drifting up the page, confetti and a cake whose
-  candle can be blown out (tap it to make a wish); New Year gets confetti too.
+  candle can be blown out (tap it to make a wish); a pet's "home birthday" also puts a party
+  hat on Akali; New Year gets confetti too.
 - **Easter** (Good Friday to Sunday, date computed every year): a basket of eggs by the
   keeper, a pixel bunny that hops across the scene now and then (Akali follows it with her
   eyes), bunny ears on Akali and seasonal lines, plus a relaxed egg hunt over the three

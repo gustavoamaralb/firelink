@@ -611,14 +611,13 @@
       madrugada: ['Ainda acordad{o}, {n}? A Akali já está no décimo sono.', 'Madrugada, {n}... só a chama e eu ainda estamos de pé.']
     };
     function falaEspecial(nome) {
-      var a = ESPECIAL.aniversariantes;
+      var a = ESPECIAL.aniversariantes, maes = CFG.mothersDay || [];
       if (a.indexOf(nome) >= 0) return 'Feliz aniversário, {n}! A fogueira brilha mais forte hoje por você.';
-      if (a.indexOf('Akali') >= 0) return 'Hoje é aniversário da Akali! Ela merece um carinho extra... mas perto do rabo, não.';
-      var outro = a.filter(function (x) { return x !== nome && pessoas[x]; })[0];
-      if (outro) return 'Hoje é aniversário d' + pessoas[outro] + ' ' + outro + ', {n}! Não esqueça de dar parabéns.';
-      var maes = CFG.mothersDay || [];
       if (ESPECIAL.maes && maes.indexOf(nome) >= 0)
         return (CFG.mothersDayLetter || {})[nome] ? 'Feliz Dia das Mães, {n}! Chegou uma carta para você. 💌' : 'Feliz Dia das Mães, {n}! A chama desta casa também é sua.';
+      if (a.indexOf('Akali') >= 0) return 'Hoje faz mais um ano que a Akali chegou nesta casa, {n}! Ela merece um carinho extra... mas perto do rabo, não.';
+      var outro = a.filter(function (x) { return x !== nome && pessoas[x]; })[0];
+      if (outro) return 'Hoje é aniversário d' + pessoas[outro] + ' ' + outro + ', {n}! Não esqueça de dar parabéns.';
       if (ESPECIAL.maes && maes.length) return 'Hoje é Dia das Mães, {n}. Já deu um abraço n' + (pessoas[maes[0]] || 'a') + ' ' + maes[0] + '?';
       if (ESPECIAL.cacaOvos) {
         var completa = window.cacaCompleta && window.cacaCompleta();
@@ -761,6 +760,12 @@
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
+      if (ESPECIAL.aniversariantes.indexOf('Akali') >= 0) {   // her "home birthday": a striped party hat
+        [[7,0,'Y'],[7,1,'R'],[6,2,'B'],[7,2,'Y'],[8,2,'B'],[5,3,'R'],[6,3,'Y'],[7,3,'R'],[8,3,'Y'],[9,3,'R'],
+         [4,4,'B'],[5,4,'B'],[6,4,'R'],[7,4,'B'],[8,4,'R'],[9,4,'B'],[10,4,'B']].forEach(function (h) {
+          px(h[0], h[1], { Y: '#ffd36b', R: '#e0402a', B: '#7fc8ff' }[h[2]]);
+        });
+      }
       if (ESPECIAL.halloween) {  // Halloween: a little witch hat
         var CH = [".......kK.", "......kKK.", ".....kKKK.", "....kKRRK.", "..kKKKKKKKk", ".kkkkkkkkkk"], CP = { K: '#7a58b0', k: '#54398a', R: '#e8761a' };
         CH.forEach(function (lin, yy) { for (var i = 0; i < lin.length; i++) if (CP[lin[i]]) px(1 + i, yy, CP[lin[i]]); });
