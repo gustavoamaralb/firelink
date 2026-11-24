@@ -211,6 +211,20 @@
   .bolo.apagado::before { display: none; }
   .bolo:focus-visible { outline: 2px dashed var(--gold-dark); outline-offset: 4px; }
   canvas#baloes { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  /* --- Easter --- */
+  .cesta { width: 56px; height: 36px; margin: 0 2px 2px; }
+  .cesta canvas { width: 56px; height: 36px; display: block; }
+  canvas#coelho { position: absolute; left: 0; bottom: 0; width: 56px; height: 40px; z-index: 3; pointer-events: none; image-rendering: pixelated; }
+  canvas#fogo { z-index: 1; }
+  footer { position: relative; }
+  .ovo { position: absolute; z-index: 3; width: 18px; height: 27px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .fogueira .ovo { z-index: 0; }
+  .ovo canvas { width: 18px; height: 27px; display: block; image-rendering: pixelated; }
+  .ovo.achado { animation: ovoachado .7s steps(7) forwards; pointer-events: none; }
+  @keyframes ovoachado { 0% { transform: translateY(0); } 40% { transform: translateY(-20px); } 100% { transform: translateY(-34px); opacity: 0; } }
+  .ovos-placar { position: fixed; top: 10px; right: 12px; z-index: 4; background: #1b140d; color: var(--gold); font-family: "Silkscreen", monospace; font-size: 13px; padding: 6px 10px; box-shadow: 0 0 0 2px var(--gold-dark); }
+  .ovos-placar[hidden] { display: none; }
+  body.simulando .ovos-placar { top: 52px; }
   /* --- Mother's Day --- */
   canvas#petalas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
   .cena { position: relative; }
@@ -277,11 +291,14 @@
 <canvas id="confete" aria-hidden="true"></canvas>
 <canvas id="baloes" aria-hidden="true" hidden></canvas>
 <canvas id="petalas" aria-hidden="true" hidden></canvas>
+<div class="ovos-placar" id="ovos-placar" hidden></div>
 <main>
   <div class="cena">
     <canvas id="flores" aria-hidden="true" hidden></canvas>
+    <canvas id="coelho" width="14" height="10" aria-hidden="true" hidden></canvas>
     <div class="arvore" id="arvore" aria-hidden="true" hidden><canvas id="pinheiro" width="21" height="36"></canvas></div>
     <div class="guardia" aria-hidden="true"><canvas id="guardia" width="16" height="22"></canvas></div>
+    <div class="cesta" id="cesta" aria-hidden="true" hidden><canvas id="cestacv" width="14" height="9"></canvas></div>
     <div class="fogueira" aria-hidden="true"><canvas id="fogo" width="42" height="44"></canvas></div>
     <button class="bolo" id="bolo" type="button" aria-label="Apagar a velinha" hidden><canvas id="bolocv" width="15" height="16"></canvas></button>
     <button class="akali" id="akali" type="button" aria-label="Fazer carinho na Akali"><canvas id="gata" width="34" height="22"></canvas></button>
@@ -383,6 +400,7 @@
   })();
 
   if (SIMULANDO) {
+    document.body.classList.add('simulando');
     var aviso = document.createElement('a');
     aviso.href = location.pathname; aviso.className = 'aviso-sim';
     aviso.textContent = 'SIMULAÇÃO: ' + (SIM.data ? SIM.data.slice(3) + '/' + SIM.data.slice(0, 2) : 'hoje') + (SIM.hora != null ? ' às ' + SIM.hora + 'h' : '') + '  ·  sair ✕';
@@ -399,7 +417,22 @@
     var ano = new Date().getFullYear(), anos = SIMULANDO ? [ano, ano + 1] : [ano];   // preview also accepts next year's date
     return MES === 4 && anos.some(function (a) { var maio = new Date(a, 4, 1); return DIA === 1 + (7 - maio.getDay()) % 7 + 7; });
   }
+  // Easter Sunday (anonymous Gregorian algorithm)
+  function domingoDePascoa(ano) {
+    var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+        g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+        l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), n = h + l - 7 * m + 114;
+    return new Date(ano, Math.floor(n / 31) - 1, n % 31 + 1);
+  }
+  function diasAtePascoa() {            // 0 = Easter Sunday, 1 = Saturday, 2 = Good Friday (preview also checks next year)
+    var ano = new Date().getFullYear(), anos = SIMULANDO ? [ano, ano + 1] : [ano], r = null;
+    anos.forEach(function (a) { var dd = Math.round((domingoDePascoa(a) - new Date(a, MES, DIA)) / 864e5); if (dd >= 0 && dd <= 2 && r === null) r = { dias: dd, ano: a }; });
+    return r;
+  }
+  var PASCOA = diasAtePascoa();
   var ESPECIAL = {
+    pascoa: !!PASCOA,                     // Good Friday to Easter Sunday: decorations
+    domingoPascoa: !!PASCOA && PASCOA.dias === 0,   // Easter Sunday: egg hunt
     natal: HOJE === '12-24' || HOJE === '12-25',
     // Christmas season: Nov 15 to Jan 6 (Epiphany, when many Brazilian homes take the tree down)
     dezembro: MES === 11 || (MES === 10 && DIA >= 15) || (MES === 0 && DIA <= 6),
@@ -553,6 +586,11 @@
       if (ESPECIAL.maes && maes.indexOf(nome) >= 0)
         return (CFG.mothersDayLetter || {})[nome] ? 'Feliz Dia das Mães, {n}! Chegou uma carta para você. 💌' : 'Feliz Dia das Mães, {n}! A chama desta casa também é sua.';
       if (ESPECIAL.maes && maes.length) return 'Hoje é Dia das Mães, {n}. Já deu um abraço n' + (pessoas[maes[0]] || 'a') + ' ' + maes[0] + '?';
+      if (ESPECIAL.domingoPascoa)
+        return window.cacaCompleta && window.cacaCompleta() ? 'Feliz Páscoa, {n}! Você já achou todos os ovos deste ano.'
+             : 'Feliz Páscoa, {n}! O coelho escondeu 4 ovos pela página... e pode deixar mais um quando passar por aqui.';
+      if (ESPECIAL.pascoa && Math.random() < .6)
+        return ['A Páscoa está chegando, {n}. Vi um coelho rondando a fogueira...', 'Dizem que um coelho passou pela fogueira esta noite, {n}...'][Math.floor(Math.random() * 2)];
       if (ESPECIAL.natal) return 'Feliz Natal, {n}! Que a chama aqueça esta casa.';
       if (ESPECIAL.anoNovo) return 'Feliz Ano Novo, {n}! Que a chama nunca se apague.';
       return null;
@@ -655,6 +693,13 @@
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
+      if (ESPECIAL.pascoa) {     // Easter: bunny-ear headband
+        [[5,0,'W'],[6,0,'W'],[5,1,'W'],[6,1,'n'],[5,2,'W'],[6,2,'n'],[5,3,'W'],[6,3,'W'],
+         [9,0,'W'],[10,0,'W'],[9,1,'W'],[10,1,'n'],[9,2,'W'],[10,2,'n'],[9,3,'W'],[10,3,'W'],
+         [4,4,'K'],[5,4,'K'],[6,4,'K'],[7,4,'K'],[8,4,'K'],[9,4,'K'],[10,4,'K'],[11,4,'K']].forEach(function (h) {
+          px(h[0], h[1], { W: '#f4f1ea', n: '#f2a7b8', K: '#ff8fb1' }[h[2]]);
+        });
+      }
       if (ESPECIAL.maes) {       // Mother's Day: a little flower by her ear
         [[12,1,'#ff8fb1'],[11,2,'#ff8fb1'],[13,2,'#ff8fb1'],[12,3,'#ff8fb1'],[12,2,'#ffd36b']].forEach(function (f) { px(f[0], f[1], f[2]); });
       }
@@ -750,6 +795,7 @@
       dormirDepois(3500);
     }
     addEventListener('mousemove', function (ev) { seguir(ev.clientX, ev.clientY); });
+    window.akaliOlhar = function (cx, cy) { seguir(cx, cy, true); };
     addEventListener('touchstart', function (ev) { var t = ev.touches[0]; if (t) seguir(t.clientX, t.clientY, true); }, { passive: true });
 
     // --- purring: vibration + "rrrr" + synthesized sound (only after a click, never on its own) ---
@@ -1015,6 +1061,80 @@
       if (window.akaliFala) window.akaliFala('Faça um pedido' + (eu ? ', ' + eu : '') + '! ✨', 'Guardiã da Chama');
       setTimeout(function () { acesa = true; btn.classList.remove('apagado'); desenhar(); }, 6000);
     });
+  })();
+
+  // ---------- Easter (Good Friday to Sunday): basket, hopping bunny, Akali's bunny ears; egg hunt on Sunday ----------
+  (function () {
+    if (!ESPECIAL.pascoa) return;
+    var SPR = {"coelho": [["..........WW..", ".........WnW..", "........WnWW..", "........WWW...", "....WWWWWWkW..", "..WWWWWWWWWWp.", ".wWWWWWWWWWW..", "wWWWWWWWWWW...", ".wWWWwwWWWw...", "..ww....ww...."], [".........WW...", "........WnW...", ".......WnWW...", "...WWWWWWWW...", "..WWWWWWWWkW..", ".wWWWWWWWWWWp.", "wWWWWWWWWWWW..", ".wWWWWWWWWw...", "...ww..ww.....", ".............."]], "cesta": ["....hhhhhh....", "...h......h...", "..h.rr..bb.h..", "..hrrrYYbbbgh.", ".prrrYYYYbbgg.", "MmMmMmMmMmMmMm", "mMmMmMmMmMmMmM", ".MmMmMmMmMmMm.", "..mMmMmMmMmM..", "...MMMMMMMM..."], "ovo": ["..aa..", ".aaaa.", "aaaaaa", "bbbbbb", "acacac", "bbbbbb", "aaaaaa", ".aaaa.", "..aa.."], "ovos": [["#c9a24a", "#e0402a", "#fff1b8"], ["#3fa9ff", "#ffd36b", "#ffffff"], ["#9fdc7c", "#ff9ad5", "#ffffff"], ["#c98aff", "#ffd36b", "#fff1b8"], ["#e0402a", "#f4f1ea", "#ffd36b"]], "P": {"W": "#f4f1ea", "w": "#cfc6b8", "n": "#f2a7b8", "k": "#1b1512", "p": "#e9a3a6", "M": "#8a5a32", "m": "#b07a44", "h": "#6a4224", "g": "#7fd45a"}, "pc": {"W": "#f4f1ea", "w": "#cfc6b8", "n": "#f2a7b8", "k": "#1b1512", "p": "#ff9ad5", "M": "#8a5a32", "m": "#b07a44", "h": "#6a4224", "g": "#9fdc7c", "r": "#e0402a", "Y": "#ffd36b", "b": "#7fc8ff", "y": "#c98aff"}};
+    function pinta(cv, L, pal) {
+      var x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height);
+      L.forEach(function (lin, y) { for (var i = 0; i < lin.length; i++) if (pal[lin[i]]) { x.fillStyle = pal[lin[i]]; x.fillRect(i, y, 1, 1); } });
+    }
+    var cena = document.querySelector('.cena');
+
+    // basket of eggs next to the keeper
+    document.getElementById('cesta').hidden = false;
+    pinta(document.getElementById('cestacv'), SPR.cesta, SPR.pc);
+    if (window.ajustarCena) window.ajustarCena();
+
+    // egg hunt (Sunday): 4 hidden eggs + 1 dropped by the bunny; progress kept per device and per year
+    var CHAVE = 'firelink.ovos.' + PASCOA.ano, achados = [];
+    try { achados = JSON.parse(localStorage.getItem(CHAVE) || '[]'); } catch (e) {}
+    var TOTAL = 5;
+    window.cacaCompleta = function () { return achados.length >= TOTAL; };
+    var placar = document.getElementById('ovos-placar');
+    function atualizarPlacar() { placar.textContent = '🥚 ' + achados.length + '/' + TOTAL; }
+    function ovo(id, pai, css) {
+      if (achados.indexOf(id) >= 0) return null;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'ovo'; b.setAttribute('aria-label', 'Ovo de Páscoa escondido');
+      for (var k in css) b.style[k] = css[k];
+      var cv = document.createElement('canvas'); cv.width = 6; cv.height = 9; b.appendChild(cv);
+      var cor = SPR.ovos[id % SPR.ovos.length]; pinta(cv, SPR.ovo, { a: cor[0], b: cor[1], c: cor[2] });
+      b.addEventListener('click', function (ev) {
+        ev.stopPropagation(); if (achados.indexOf(id) >= 0) return;
+        achados.push(id); try { localStorage.setItem(CHAVE, JSON.stringify(achados)); } catch (e) {}
+        b.classList.add('achado'); setTimeout(function () { b.remove(); }, 800); atualizarPlacar();
+        var eu = window.quemEsta && window.quemEsta(), falta = TOTAL - achados.length;
+        if (falta > 0) { if (window.akaliFala) window.akaliFala('Achou um ovo! ' + (falta === 1 ? 'Falta só 1.' : 'Faltam ' + falta + '.'), 'Guardiã da Chama'); }
+        else {
+          if (window.akaliFala) window.akaliFala('Você achou todos os ovos' + (eu ? ', ' + eu : '') + '! O coelho vai ter que se esforçar mais no ano que vem.', 'Guardiã da Chama');
+          if (window.soltarConfete) window.soltarConfete(9000);
+        }
+      });
+      pai.appendChild(b); return b;
+    }
+    if (ESPECIAL.domingoPascoa) {
+      placar.hidden = false; atualizarPlacar();
+      ovo(0, document.querySelector('.fogueira'), { left: '6px', bottom: '8px' });              // behind the logs
+      ovo(1, cena, { right: '-16px', bottom: '-4px' });                                         // by Akali's tail
+      ovo(2, document.getElementById('dialogo'), { left: '-12px', bottom: '-18px' });          // peeking under the dialogue box
+      ovo(3, document.querySelector('footer'), { right: '6px', top: '-8px' });                  // in the footer
+    }
+
+    // the bunny hops across the scene now and then; on Sunday its first pass drops the 5th egg
+    var cv = document.getElementById('coelho'), largura = 56;
+    function atravessar() {
+      cv.hidden = false;
+      var fim = cena.scrollWidth + 10, xpos = -largura, quadro = 0, soltou = false;
+      var deixa = ESPECIAL.domingoPascoa && achados.indexOf(4) < 0 && !document.querySelector('.ovo[data-coelho]');
+      var meio = fim * (.35 + Math.random() * .3);
+      (function passo() {
+        quadro++; xpos += 9;
+        var pulo = quadro % 2 ? 0 : -8;
+        pinta(cv, SPR.coelho[quadro % 2], SPR.P);
+        cv.style.transform = 'translate(' + xpos + 'px,' + pulo + 'px)';
+        var r = cv.getBoundingClientRect(); if (window.akaliOlhar) window.akaliOlhar(r.left + r.width / 2, r.top + r.height / 2);
+        if (deixa && !soltou && xpos > meio) { soltou = true; var o = ovo(4, cena, { left: Math.round(xpos + 20) + 'px', bottom: '-2px' }); if (o) o.dataset.coelho = '1'; }
+        if (xpos < fim) setTimeout(passo, 170); else cv.hidden = true;
+      })();
+    }
+    if (!quieto) {
+      setTimeout(atravessar, 4000);
+      (function agendar() { setTimeout(function () { if (!document.hidden) atravessar(); agendar(); }, 35000 + Math.random() * 20000); })();
+    } else if (ESPECIAL.domingoPascoa) {
+      ovo(4, cena, { left: '45%', bottom: '-2px' });       // reduced motion: the 5th egg is already there
+    }
   })();
 
   // ---------- Mother's Day: falling petals, flowers sprouting around the scene, and the letter ----------
