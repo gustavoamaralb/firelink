@@ -631,7 +631,7 @@
       }
       if (ESPECIAL.dia31) return ['Feliz Halloween, {n}! Toque na abóbora... se tiver coragem.', 'Hoje também é Dia do Saci, {n}. Cuidado com redemoinhos!'][Math.floor(Math.random() * 2)];
       if (ESPECIAL.halloween && Math.random() < .6)
-        return ['A noite está estranha hoje, {n}... a chama mudou de cor.', 'Ouvi passos lá fora, {n}. Fique perto da fogueira.', 'Morcegos rondam o santuário esta noite, {n}.'][Math.floor(Math.random() * 3)];
+        return ['A noite está estranha hoje, {n}... a chama mudou de cor.', 'Ouvi passos lá fora, {n}. Fique perto da fogueira.', 'Morcegos rondam o santuário esta noite, {n}.', 'Vi um redemoinho perto da fogueira, {n}... será o Saci?'][Math.floor(Math.random() * 4)];
       if (ESPECIAL.natal) return 'Feliz Natal, {n}! Que a chama aqueça esta casa.';
       if (ESPECIAL.anoNovo) return 'Feliz Ano Novo, {n}! Que a chama nunca se apague.';
       return null;
@@ -1147,7 +1147,7 @@
   })();
 
   // ---------- Halloween (Oct 25-31): ghostly flame, pumpkin, bats, fog, peeking ghost, witch hat;
-  //            on Oct 31 (also Saci Day): trick-or-treat at the pumpkin and the Saci hopping by ----------
+  //            the Saci hops by all week (more often on Oct 31, Saci Day); trick-or-treat at the pumpkin on Oct 31 ----------
   (function () {
     if (!ESPECIAL.halloween) return;
     document.body.classList.add('halloween');
@@ -1248,8 +1248,8 @@
       ]);
     });
 
-    // Oct 31 is also Saci Day: the Saci hops across on one leg, puffing his pipe, and vanishes in a whirlwind
-    if (!ESPECIAL.dia31) return;
+    // the Saci (Oct 31 is Saci Day) hops across on one leg, puffing his pipe, and vanishes in a whirlwind:
+    // now and then all week, more often on the 31st
     var cs = document.getElementById('saci'), xs = cs.getContext('2d');
     function saci() {
       cs.hidden = false; var fim = cena.scrollWidth + 20, xpos = fim, quadro = 0, fumaca = [], girando = 0, pararEm = fim * (.08 + Math.random() * .2);
@@ -1276,7 +1276,8 @@
         if (girando < 14) setTimeout(passo, 150); else { xs.clearRect(0, 0, 12, 22); cs.hidden = true; }
       })();
     }
-    if (!quieto) { setTimeout(saci, 10000); (function agendar() { setTimeout(function () { if (!document.hidden) saci(); agendar(); }, 60000 + Math.random() * 30000); })(); }
+    var espera = ESPECIAL.dia31 ? [60000, 30000] : [90000, 60000];
+    if (!quieto) { setTimeout(saci, ESPECIAL.dia31 ? 10000 : 25000); (function agendar() { setTimeout(function () { if (!document.hidden) saci(); agendar(); }, espera[0] + Math.random() * espera[1]); })(); }
   })();
 
   // ---------- Easter (Good Friday to Sunday): basket, hopping bunny, Akali's bunny ears; egg hunt on Sunday ----------
