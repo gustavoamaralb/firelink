@@ -211,6 +211,26 @@
   .bolo.apagado::before { display: none; }
   .bolo:focus-visible { outline: 2px dashed var(--gold-dark); outline-offset: 4px; }
   canvas#baloes { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  /* --- Mother's Day --- */
+  canvas#petalas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  .cena { position: relative; }
+  canvas#flores { position: absolute; left: 0; bottom: -8px; width: 100%; height: 40px; pointer-events: none; z-index: 2; image-rendering: pixelated; }
+  body.maes .guardia::before { background: radial-gradient(circle, rgba(255,150,190,.30), transparent 65%); }
+  body.maes .fogueira::before { background: radial-gradient(ellipse at 50% 80%, rgba(255,120,170,.22), transparent 65%); }
+  .opcoes.carta-botao { margin-top: 12px; }
+  .carta { position: fixed; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(6,3,4,.78); }
+  .carta[hidden] { display: none !important; }
+  .carta-papel {
+    position: relative; width: 100%; max-width: 440px; padding: 30px 28px 22px; background: #f6ecd8; color: #3a2414;
+    box-shadow: 0 -4px 0 0 #e58aa8, 0 4px 0 0 #e58aa8, -4px 0 0 0 #e58aa8, 4px 0 0 0 #e58aa8, 0 10px 0 0 #000, 0 0 40px rgba(255,140,180,.35);
+    animation: abrircarta .5s steps(5);
+  }
+  @keyframes abrircarta { from { transform: scale(.6, .1); } to { transform: scale(1); } }
+  .carta-papel b { display: block; font-family: "Silkscreen", monospace; font-weight: 700; font-size: 16px; letter-spacing: .1em; color: #c2416c; margin-bottom: 16px; }
+  .carta-papel p { margin: 0; font-size: 28px; line-height: 1.2; min-height: 4.8em; white-space: pre-line; }
+  .carta-coracoes { margin-top: 14px; color: #e0507a; font-size: 22px; letter-spacing: .4em; text-align: center; }
+  #carta-fechar { display: block; margin: 14px auto 0; background: none; border: 0; cursor: pointer; font-family: "VT323", monospace; font-size: 20px; color: #8a5a44; }
+  #carta-fechar:hover, #carta-fechar:focus-visible { color: #c2416c; text-decoration: underline; outline: none; }
   canvas#confete { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 
   footer { margin-top: 34px; color: var(--muted); font-size: 21px; line-height: 1.35; }
@@ -256,8 +276,10 @@
 <canvas id="brasas" aria-hidden="true"></canvas>
 <canvas id="confete" aria-hidden="true"></canvas>
 <canvas id="baloes" aria-hidden="true" hidden></canvas>
+<canvas id="petalas" aria-hidden="true" hidden></canvas>
 <main>
   <div class="cena">
+    <canvas id="flores" aria-hidden="true" hidden></canvas>
     <div class="arvore" id="arvore" aria-hidden="true" hidden><canvas id="pinheiro" width="21" height="36"></canvas></div>
     <div class="guardia" aria-hidden="true"><canvas id="guardia" width="16" height="22"></canvas></div>
     <div class="fogueira" aria-hidden="true"><canvas id="fogo" width="42" height="44"></canvas></div>
@@ -310,6 +332,15 @@
     </div>
   </footer>
 </main>
+
+<div class="carta" id="carta" hidden role="dialog" aria-modal="true" aria-labelledby="carta-titulo">
+  <div class="carta-papel">
+    <b id="carta-titulo"></b>
+    <p id="carta-texto"></p>
+    <div class="carta-coracoes" aria-hidden="true">♥ ♥ ♥</div>
+    <button type="button" id="carta-fechar">fechar ✕</button>
+  </div>
+</div>
 <script src="config.js"></script>
 <script>
   // links reuse the address that was typed (firelink.local or the IP)
@@ -365,8 +396,8 @@
   var HOJE = SIM.data || (function () { var d = new Date(); return ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); })();
   var MES = +HOJE.slice(0, 2) - 1, DIA = +HOJE.slice(3);
   function diaDasMaes() {               // 2nd Sunday of May (Mother's Day in Brazil)
-    var maio = new Date(new Date().getFullYear(), 4, 1), dom = 1 + (7 - maio.getDay()) % 7 + 7;
-    return MES === 4 && DIA === dom;
+    var ano = new Date().getFullYear(), anos = SIMULANDO ? [ano, ano + 1] : [ano];   // preview also accepts next year's date
+    return MES === 4 && anos.some(function (a) { var maio = new Date(a, 4, 1); return DIA === 1 + (7 - maio.getDay()) % 7 + 7; });
   }
   var ESPECIAL = {
     natal: HOJE === '12-24' || HOJE === '12-25',
@@ -447,6 +478,12 @@
       x.fillStyle = '#00000000';
       if (alto === 1) { x.fillStyle = '#ffcc5a'; x.fillRect(7, 11, 2, 1); }
       if (alto === 2) { x.fillStyle = '#fff1b8'; x.fillRect(8, 11, 1, 1); x.fillStyle = '#ff9a2e'; x.fillRect(7, 12, 1, 1); }
+      if (ESPECIAL.maes) {      // Mother's Day: a small bouquet instead of the candle
+        x.clearRect(6, 10, 4, 5);
+        [[6,10,'#ff8fb1'],[7,10,'#fff0f4'],[8,10,'#e0507a'],[9,10,'#ff8fb1'],
+         [6,11,'#e0507a'],[7,11,'#ffd36b'],[8,11,'#ff8fb1'],[9,11,'#fff0f4'],
+         [7,12,'#4f8a3a'],[8,12,'#3d6e2c'],[7,13,'#b8957c'],[8,13,'#b8957c'],[7,14,'#4f8a3a']].forEach(function (f) { x.fillStyle = f[2]; x.fillRect(f[0], f[1], 1, 1); });
+      }
     }
     var t = 0; desenhar(t);
     if (!quieto) setInterval(function () { desenhar(++t); }, 260);
@@ -512,7 +549,10 @@
       if (a.indexOf('Akali') >= 0) return 'Hoje é aniversário da Akali! Ela merece um carinho extra... mas perto do rabo, não.';
       var outro = a.filter(function (x) { return x !== nome && pessoas[x]; })[0];
       if (outro) return 'Hoje é aniversário d' + pessoas[outro] + ' ' + outro + ', {n}! Não esqueça de dar parabéns.';
-      if (ESPECIAL.maes && (CFG.mothersDay || []).indexOf(nome) >= 0) return 'Feliz Dia das Mães, {n}! A chama desta casa também é sua.';
+      var maes = CFG.mothersDay || [];
+      if (ESPECIAL.maes && maes.indexOf(nome) >= 0)
+        return (CFG.mothersDayLetter || {})[nome] ? 'Feliz Dia das Mães, {n}! Chegou uma carta para você. 💌' : 'Feliz Dia das Mães, {n}! A chama desta casa também é sua.';
+      if (ESPECIAL.maes && maes.length) return 'Hoje é Dia das Mães, {n}. Já deu um abraço n' + (pessoas[maes[0]] || 'a') + ' ' + maes[0] + '?';
       if (ESPECIAL.natal) return 'Feliz Natal, {n}! Que a chama aqueça esta casa.';
       if (ESPECIAL.anoNovo) return 'Feliz Ano Novo, {n}! Que a chama nunca se apague.';
       return null;
@@ -527,15 +567,24 @@
       var lista = ESPECIAL.dezembro && Math.random() < .4 ? falasDezembro : Math.random() < .5 ? porPeriodo[PERIODO] : falas;
       var f = falaEspecial(nome) || lista[Math.floor(Math.random() * lista.length)];
       falaGuardia = f.replace(/\{n\}/g, nome).replace(/\{o\}/g, pessoas[nome]);
-      fimGuardia = function () { trocar.hidden = false; };
+      var temCarta = ESPECIAL.maes && (CFG.mothersDay || []).indexOf(nome) >= 0 && (CFG.mothersDayLetter || {})[nome];
+      fimGuardia = function () {
+        trocar.hidden = false;
+        if (temCarta) {                                    // RPG-style option to open the letter
+          opcoes.innerHTML = ''; opcoes.classList.add('carta-botao');
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Abrir a carta 💌';
+          b.addEventListener('click', function () { if (window.abrirCarta) window.abrirCarta(nome, CFG.mothersDayLetter[nome]); });
+          opcoes.appendChild(b); opcoes.hidden = false;
+        }
+      };
       escrever(falaGuardia, fimGuardia);
     }
-    trocar.addEventListener('click', function () { gravar(null); perguntar(); });
+    trocar.addEventListener('click', function () { gravar(null); opcoes.classList.remove('carta-botao'); perguntar(); });
 
     // Akali "speaks" for a few seconds, then the keeper resumes
     window.akaliFala = function (t, quem) {
       if (caixa.classList.contains('escolhendo') || !falaGuardia) return false;
-      clearTimeout(volta); rotulo.textContent = quem || 'Akali'; trocar.hidden = true;
+      clearTimeout(volta); rotulo.textContent = quem || 'Akali'; trocar.hidden = true; opcoes.hidden = true;
       escrever(t, function () {
         volta = setTimeout(function () { rotulo.textContent = 'Guardiã da Chama'; escrever(falaGuardia, fimGuardia); }, 2600);
       });
@@ -606,6 +655,9 @@
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
+      if (ESPECIAL.maes) {       // Mother's Day: a little flower by her ear
+        [[12,1,'#ff8fb1'],[11,2,'#ff8fb1'],[13,2,'#ff8fb1'],[12,3,'#ff8fb1'],[12,2,'#ffd36b']].forEach(function (f) { px(f[0], f[1], f[2]); });
+      }
       if (ESPECIAL.dezembro) {   // Santa hat in the Christmas season
         [[10,0,'W'],[11,0,'W'],[10,1,'W'],[11,1,'W'],                       // pompom
          [8,0,'R'],[9,0,'R'],[7,1,'R'],[8,1,'r'],[9,1,'R'],
@@ -965,6 +1017,75 @@
     });
   })();
 
+  // ---------- Mother's Day: falling petals, flowers sprouting around the scene, and the letter ----------
+  (function () {
+    if (!ESPECIAL.maes) return;
+    document.body.classList.add('maes');
+
+    // petals drifting down slowly, tumbling
+    var c = document.getElementById('petalas'), x = c.getContext('2d'); c.hidden = false;
+    var formas = [["pp.", ".pp"], [".p", "pP", "p."], [".pp", "pp."], ["pP", "Pp"]];
+    var tons = [['#ff9ab8', '#ffd1e0'], ['#ffc2d4', '#fff0f4'], ['#f4f1ea', '#ffffff'], ['#e0507a', '#ff8fb1']];
+    var dpr, W, H, P, petalas = [], extra = 0;
+    function medir() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = c.width = innerWidth * dpr; H = c.height = innerHeight * dpr; P = 4 * dpr; }
+    function nova(inicio) { return { x: Math.random() * W, y: inicio ? Math.random() * H : -3 * P, v: (.5 + Math.random() * .7) * dpr, f: Math.random() * 6, g: .01 + Math.random() * .02, t: tons[Math.floor(Math.random() * tons.length)] }; }
+    medir(); addEventListener('resize', medir);
+    for (var i = 0, n = innerWidth < 600 ? 22 : 40; i < n; i++) petalas.push(nova(true));
+    window.maisPetalas = function () { for (var k = 0; k < 40; k++) petalas.push(nova(false)); extra = 40; };
+    (function quadro() {
+      x.clearRect(0, 0, W, H);
+      petalas.forEach(function (p, i) {
+        if (!quieto) { p.y += p.v; p.f += p.g; }
+        if (p.y > H + 3 * P) { if (extra > 0 && i >= petalas.length - extra) { p.y = H * 9; return; } petalas[i] = p = nova(false); }
+        var forma = formas[Math.floor(p.f * 3) % formas.length], bx = Math.round((p.x + Math.sin(p.f * 2) * 30 * dpr) / P) * P, by = Math.round(p.y / P) * P;
+        forma.forEach(function (lin, yy) { for (var xx = 0; xx < lin.length; xx++) if (lin[xx] !== '.') { x.fillStyle = lin[xx] === 'P' ? p.t[1] : p.t[0]; x.fillRect(bx + xx * P, by + yy * P, P, P); } });
+      });
+      if (!quieto) requestAnimationFrame(quadro);
+    })();
+
+    // flowers sprouting along the ground of the scene, one by one
+    var cf = document.getElementById('flores'), fx = cf.getContext('2d'), cena = document.querySelector('.cena');
+    var flores = [], cores = ['#ff8fb1', '#fff0f4', '#c98aff', '#ffd36b', '#e0507a', '#ff9ab8'];
+    function preparar() {
+      cf.hidden = false; cf.width = Math.ceil(cena.scrollWidth / 4); cf.height = 10;
+      if (!flores.length) for (var xx = 2; xx < cf.width - 2; xx += 4 + Math.floor(Math.random() * 4))
+        flores.push({ x: xx, h: 3 + Math.floor(Math.random() * 4), cor: cores[Math.floor(Math.random() * cores.length)], at: Math.random() * 40, cresce: 0 });
+    }
+    preparar(); addEventListener('resize', preparar);
+    var tf = 0;
+    (function crescer() {
+      fx.clearRect(0, 0, cf.width, cf.height);
+      flores.forEach(function (f) {
+        if (quieto) f.cresce = f.h + 2; else if (tf > f.at) f.cresce = Math.min(f.h + 2, f.cresce + .25);   // reduced motion: already in bloom
+        var talo = Math.min(f.cresce, f.h), base = cf.height - 1;
+        fx.fillStyle = '#4f8a3a'; for (var k = 0; k < talo; k++) fx.fillRect(f.x, base - k, 1, 1);
+        if (talo > 2) { fx.fillStyle = '#6fae4a'; fx.fillRect(f.x - 1, base - 1, 1, 1); }
+        if (f.cresce > f.h) {                              // bloom
+          var y = base - f.h; fx.fillStyle = f.cor;
+          fx.fillRect(f.x - 1, y, 1, 1); fx.fillRect(f.x + 1, y, 1, 1); fx.fillRect(f.x, y - 1, 1, 1); fx.fillRect(f.x, y + 1, 1, 1);
+          fx.fillStyle = '#ffd36b'; fx.fillRect(f.x, y, 1, 1);
+        }
+      });
+      tf++;
+      if (!quieto && flores.some(function (f) { return f.cresce < f.h + 2; })) setTimeout(crescer, 60);
+    })();
+
+    // the letter: pixel card with the message typed letter by letter
+    var carta = document.getElementById('carta'), texto = document.getElementById('carta-texto'), timer;
+    window.abrirCarta = function (nome, msg) {
+      document.getElementById('carta-titulo').textContent = 'PARA ' + nome.toUpperCase();
+      carta.hidden = false; texto.textContent = ''; clearInterval(timer);
+      if (window.maisPetalas) window.maisPetalas();
+      if (quieto) { texto.textContent = msg; return; }
+      var i = 0; timer = setInterval(function () { texto.textContent = msg.slice(0, ++i); if (i >= msg.length) clearInterval(timer); }, 45);
+      document.getElementById('carta-fechar').focus();
+    };
+    function fechar() { carta.hidden = true; clearInterval(timer); }
+    document.getElementById('carta-fechar').addEventListener('click', fechar);
+    carta.addEventListener('click', function (ev) { if (ev.target === carta) fechar(); });
+    addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !carta.hidden) fechar(); });
+  })();
+
   // ---------- pixel confetti (birthdays, Christmas, New Year, Mother's Day) ----------
   (function () {
     var c = document.getElementById('confete'), x = c.getContext('2d'), cores = ['#ff5a5a', '#ffd36b', '#7fc8ff', '#9fdc7c', '#ff9ad5', '#f4f1ea', '#c98aff'];
@@ -987,7 +1108,7 @@
       pecas = []; for (var i = 0; i < 200; i++) pecas.push({ x: Math.random() * W, y: Math.random() * H * 1.1 - H * .8, v: (1.5 + Math.random() * 2.5) * dpr, c: cores[i % cores.length], f: Math.random() * 6 });
       if (!rodando) { rodando = true; requestAnimationFrame(quadro); }
     };
-    var festa = ESPECIAL.aniversariantes.length || ESPECIAL.natal || ESPECIAL.anoNovo || ESPECIAL.maes;
+    var festa = ESPECIAL.aniversariantes.length || ESPECIAL.natal || ESPECIAL.anoNovo;   // Mother's Day uses petals instead
     if (festa) window.soltarConfete(20000);
   })();
 
@@ -995,7 +1116,8 @@
   (function () {
     var c = document.getElementById('fogo'), x = c.getContext('2d');
     var W = 42, H = 44, FW = 26, FH = 34, ox = 8, oy = 2;   // fire area inside the canvas
-    var pal = ['#00000000','#3a0a04','#5a1206','#7a1a08','#9a240a','#b8320c','#d4420e',
+    var pal = ESPECIAL.maes ? ['#00000000','#3a0814','#5a1022','#7a1832','#9a2244','#b82e58','#d43c6c',
+               '#e65080','#f06694','#f77ca6','#fb92b6','#fda6c4','#feb8d0','#ffc8da','#ffd8e4','#ffe6ee','#fff2f6','#fffbfc'] : ['#00000000','#3a0a04','#5a1206','#7a1a08','#9a240a','#b8320c','#d4420e',
                '#e65412','#f06818','#f77d1e','#fb9226','#fda732','#feba44','#ffcc5a',
                '#ffdb76','#ffe896','#fff2ba','#fffbe0'];
     var MAX = pal.length - 1, fogo = new Array(FW * FH).fill(0);

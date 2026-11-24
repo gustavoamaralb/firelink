@@ -61,7 +61,11 @@ A single HTML file with no dependencies besides two Google Fonts.
   person, shared across devices.
 - **Day and night:** a starry sky at night, warm light in the morning.
 - **Special dates:** on birthdays, pixel balloons drifting up the page, confetti and a cake whose
-  candle can be blown out (tap it to make a wish); New Year and Mother's Day get confetti too.
+  candle can be blown out (tap it to make a wish); New Year gets confetti too.
+- **Mother's Day** has its own, gentler look: falling petals, flowers sprouting along the
+  ground of the scene, a rose-tinted flame, a bouquet in the keeper's hands, a flower by
+  Akali's ear, and an optional letter (from `config.js`) that the keeper hands over and
+  that opens as a pixel card, typed letter by letter.
 - **Preview mode:** `/?data=MM-DD&hora=H` simulates a date and/or hour, with a visible
   banner and a link to exit (e.g. `/?data=12-25&hora=21`).
 - **Christmas season** (Nov 15 to Jan 6): a pixel replica of the household tree (silver
