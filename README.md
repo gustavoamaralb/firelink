@@ -1,4 +1,4 @@
-# firelink
+<h1 align="center"><img src="assets/banner.png" alt="firelink" width="600"></h1>
 
 A home server built on an old laptop: shared folders for the family, movies and
 classes on the TV and phones, comics and books in the browser, and a pixel-art home
@@ -40,6 +40,7 @@ page/         home page (a single HTML file) and the household config example
 api/          firelink-api, its systemd unit (template) and the install script
 scripts/      firelink-disk.sh (disk usage) and firelink-smart (disk health)
 config/       samba, caddy, nftables, systemd, cron, apt and disks
+assets/       README banner (rendered from the home page itself)
 ```
 
 ## The home page
