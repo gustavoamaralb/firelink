@@ -629,6 +629,12 @@
     }
     trocar.addEventListener('click', function () { gravar(null); opcoes.classList.remove('carta-botao'); perguntar(); });
 
+    // replace the keeper's base line (the one she returns to after temporary lines)
+    window.novaFalaGuardia = function (t) {
+      var eu = window.quemEsta && window.quemEsta(); if (!eu) return;
+      falaGuardia = t.replace(/\{n\}/g, eu).replace(/\{o\}/g, pessoas[eu]);
+    };
+
     // Akali "speaks" for a few seconds, then the keeper resumes
     window.akaliFala = function (t, quem) {
       if (caixa.classList.contains('escolhendo') || !falaGuardia) return false;
@@ -1109,6 +1115,8 @@
         var eu = window.quemEsta && window.quemEsta(), falta = TOTAL - achados.length;
         if (falta > 0) { if (window.akaliFala) window.akaliFala('Achou um ovo! ' + (falta === 1 ? 'Falta só 1.' : 'Faltam ' + falta + '.'), 'Guardiã da Chama'); }
         else {
+          if (window.novaFalaGuardia) window.novaFalaGuardia(ESPECIAL.domingoPascoa ? 'Feliz Páscoa, {n}! Você já achou todos os ovos deste ano.'
+                                                                                    : 'Você já achou todos os ovos, {n}. Agora é só esperar a Páscoa.');
           if (window.akaliFala) window.akaliFala('Você achou todos os ovos' + (eu ? ', ' + eu : '') + '! O coelho vai ter que se esforçar mais no ano que vem.', 'Guardiã da Chama');
           if (window.soltarConfete) window.soltarConfete(9000);
         }
