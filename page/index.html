@@ -221,7 +221,9 @@
   .fogueira .ovo { z-index: 0; }
   .ovo canvas { width: 18px; height: 27px; display: block; image-rendering: pixelated; }
   .ovo.achado { animation: ovoachado .7s steps(7) forwards; pointer-events: none; }
-  .ovo.dourado::after { content: "✦"; position: absolute; right: -10px; top: -8px; color: #fff1b8; font-size: 14px; text-shadow: 0 0 6px #ffd36b; animation: piscar 1s steps(2) infinite; }
+  .ovo.dourado { width: 24px; height: 36px; z-index: 4; filter: drop-shadow(0 0 4px rgba(255,211,107,.9)) drop-shadow(0 0 10px rgba(255,180,60,.5)); }
+  .ovo.dourado canvas { width: 24px; height: 36px; }
+  .ovo.dourado::after { content: "✦"; position: absolute; right: -12px; top: -10px; color: #fff1b8; font-size: 16px; text-shadow: 0 0 6px #ffd36b; animation: piscar 1s steps(2) infinite; }
   .ovos-placar.reinicia { cursor: pointer; }
   @keyframes ovoachado { 0% { transform: translateY(0); } 40% { transform: translateY(-20px); } 100% { transform: translateY(-34px); opacity: 0; } }
   .ovos-placar { position: fixed; top: 10px; right: 12px; z-index: 4; background: #1b140d; color: var(--gold); font-family: "Silkscreen", monospace; font-size: 13px; padding: 6px 10px; box-shadow: 0 0 0 2px var(--gold-dark); }
@@ -1130,7 +1132,7 @@
       cv.hidden = false;
       var fim = cena.scrollWidth + 10, xpos = -largura, quadro = 0, soltou = false;
       var deixa = ESPECIAL.cacaOvos && achados.indexOf(4) < 0 && !document.querySelector('.ovo[data-coelho]');
-      var meio = fim * (.10 + Math.random() * .12);       // drop it in front of the keeper/basket, where the background is dark
+      var meio = 4 + Math.random() * 14;                   // drop it on the keeper's dark robe (not on the basket or Akali, where it blends in)
       (function passo() {
         quadro++; xpos += 9;
         var pulo = quadro % 2 ? 0 : -8;
@@ -1148,7 +1150,7 @@
       setTimeout(atravessar, 4000);
       (function agendar() { setTimeout(function () { if (!document.hidden) atravessar(); agendar(); }, 35000 + Math.random() * 20000); })();
     } else if (ESPECIAL.cacaOvos) {
-      ovo(4, cena, { left: '14%', bottom: '-2px' });       // reduced motion: the golden egg is already there
+      ovo(4, cena, { left: '28px', bottom: '-2px' });      // reduced motion: the golden egg is already there, on the keeper's robe
     }
   })();
 
