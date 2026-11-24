@@ -60,7 +60,10 @@ A single HTML file with no dependencies besides two Google Fonts.
   health (SMART, temperature, last self-test) and Akali's scoreboard of pets and swats per
   person, shared across devices.
 - **Day and night:** a starry sky at night, warm light in the morning.
-- **Special dates:** birthdays, New Year and Mother's Day, with pixel confetti.
+- **Special dates:** on birthdays, pixel bunting across the top, confetti and a cake whose
+  candle can be blown out (tap it to make a wish); New Year and Mother's Day get confetti too.
+- **Preview mode:** `/?data=MM-DD&hora=H` simulates a date and/or hour, with a visible
+  banner and a link to exit (e.g. `/?data=12-25&hora=21`).
 - **Christmas season** (Nov 15 to Jan 6): a pixel replica of the household tree (silver
   8-point star, gold straw wreath, bead garlands, red and cream-gold baubles, the teddy
   bear in a red sweater) whose lights alternate between warm and cool modes, a Santa hat
