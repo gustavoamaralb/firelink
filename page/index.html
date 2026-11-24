@@ -229,8 +229,6 @@
   @keyframes assusta { 0% { transform: scale(.1); opacity: 0; } 25% { transform: scale(1.25); opacity: 1; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
   body.pisca main { animation: piscatela .9s steps(1); }
   @keyframes piscatela { 0%, 100% { filter: none; } 15% { filter: invert(1) hue-rotate(180deg); } 35% { filter: none; } 55% { filter: invert(1); } 75% { filter: none; } }
-  .akali.foge { transform: translateX(110vw); transition: transform .9s steps(9); }
-  .akali.volta { transition: transform .9s steps(9); }
   /* --- Easter --- */
   .cesta { width: 56px; height: 36px; margin: 0 2px 2px; }
   .cesta canvas { width: 56px; height: 36px; display: block; }
@@ -287,6 +285,8 @@
   @keyframes tremor { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 50% { transform: translateX(3px); } 75% { transform: translateX(-2px); } }
   .flutua.mel { color: #f4f1ea; font-family: "VT323", monospace; font-size: 20px; white-space: nowrap; text-shadow: 2px 2px 0 #2a1d14; animation-duration: 2.6s; }
   .akali.ronrona canvas { animation: vibra .09s steps(2) infinite; }
+  .akali.arrepia canvas { animation: arrepia 1.4s steps(7) infinite; }   /* spooked: sideways hops on stiff legs */
+  @keyframes arrepia { 0%,100% { transform: translate(0, 0); } 20% { transform: translate(-5px, -4px); } 40% { transform: translate(-9px, 0); } 60% { transform: translate(-5px, -3px); } 80% { transform: translate(-1px, 0); } }
   @keyframes vibra { 0% { transform: translate(0, 0); } 50% { transform: translate(1px, 0); } }
   .flutua.rr { color: #d9ccb4; font-family: "VT323", monospace; font-size: 18px; white-space: nowrap; text-shadow: 2px 2px 0 #2a1d14; animation-duration: 2.8s; }
   .flutua.chamado { color: #fff1b8; font-family: "Silkscreen", monospace; font-size: 13px; white-space: nowrap; text-shadow: 2px 2px 0 #3a2410, 0 0 10px rgba(255,200,120,.5); animation-duration: 3s; }
@@ -305,7 +305,7 @@
     .fogueira::before, .guardia::before, a.botao:hover::before, .dialogo.fim .seta { animation: none; }
     .flutua { display: none; }
     .luz.ok, .ceu i { animation: none; }
-    .akali.ronrona canvas { animation: none; }
+    .akali.ronrona canvas, .akali.arrepia canvas { animation: none; }
     canvas#brasas { display: none; }
   }
 </style>
@@ -704,7 +704,7 @@
   (function () {
     var c = document.getElementById('gata'), x = c.getContext('2d'), btn = document.getElementById('akali');
     var P = { W:'#f4f1ea', w:'#cdc6ba', B:'#2e221c', b:'#6e5242', c:'#8f6e58', f:'#c4a07e', T:'#3a2c22',
-              t:'#56402f', u:'#7a5e48', p:'#e9a3a6', E:'#8fd3f5', k:'#1b1512', n:'#e2b9b9', s:'#17110d' };
+              t:'#56402f', u:'#7a5e48', p:'#e9a3a6', E:'#8fd3f5', k:'#1b1512', n:'#e2b9b9', s:'#17110d', F:'#ffffff' };
     var base = [
       "..................................", "..B.......b.......................", "..BB.....bb.......................",
       "..BnB...bnb.......................", "..BBBbbbbbb.......................", ".BBBBBbbbbbW.......w.w............",
@@ -714,7 +714,55 @@
       "w.wWWWWWWWWWWWWWWWWWWWWWWWWWw.....", ".wWWWWWwwWWWWWWWWWWWWWWWWWWw......", "..WnWnW.wwwwwwwwwwwwwwwwww........",
       "..WWWWW...........................", "...ww.............................", "..ssssssssssssssssssssssssssssss..",
       ".................................." ];
-    var acordada = false, quadro = 'base', tapa = false, olhar = { x: 0, y: 1 };
+    // spooked pose (Halloween trick): arched back, fur and tail bristling, ears flat, hissing.
+    // Markings from her side photos: beige saddle, brownish haunch, dark-brown hind thigh with a white paw.
+    var ARREPIO = [[
+      "...........................utTt...",
+      "................w.W.w.W....tTTTtu.",
+      "..............W.WfffffW.w.utTTTt..",
+      "..............WffffffffWW...tTTTtu",
+      "............wWWfffffffffWWWutTTTt.",
+      "Bn........bBWWWWfffffffWWfc.tTTtu.",
+      "BBBBbbbbWbBWWWWWWWffffWWfcctTTt...",
+      "BBBBBbWWWWWWWWWWWWWWWWWWccfTTtu...",
+      "BBEkBBWkEWWWWWWwwwwwwwwWWfccW.....",
+      "BBEEBWWEEWWWWWww......wwWbbbb.....",
+      "wBBBWpWWWWWwWWW.........Wbbbb.....",
+      ".wBWkkkWWWwwWW...........Wbbb.....",
+      "..wFpFkWw.wwWW...........wwbb.....",
+      "...wWWWw..wwWW...........wwbb.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwcw...........wwWw.....",
+      "........sssssssssssssssssssssss...",
+      ".................................." ],
+    [
+      "............................tTtu..",
+      ".................W.W.W....utTTTt..",
+      "...............WWfffffWW...tTTTtu.",
+      ".............WWffffffffWWW.utTTTt.",
+      ".............WWfffffffffWW..tTTTtu",
+      "Bn........bBWWWWfffffffWWfcutTTt..",
+      "BBBBbbbbWbBWWWWWWWffffWWfcctTTtu..",
+      "BBBBBbWWWWWWWWWWWWWWWWWWccfTTt....",
+      "BBEkBBWkEWWWWWWwwwwwwwwWWfccW.....",
+      "BBEEBWWEEWWWWWww......wwWbbbb.....",
+      "wBBBWpWWWWWwWWW.........Wbbbb.....",
+      ".wBWkkkWWWwwWW...........Wbbb.....",
+      "..wFpFkWw.wwWW...........wwbb.....",
+      "...wWWWw..wwWW...........wwbb.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwWW...........wwWW.....",
+      "..........wwcw...........wwWw.....",
+      "........sssssssssssssssssssssss...",
+      ".................................." ]];
+    var acordada = false, quadro = 'base', tapa = false, olhar = { x: 0, y: 1 }, arrepio = 0;
 
     // tail: fluffy curve drawn separately from the body; only the tip changes between frames
     var pontos = {
@@ -754,9 +802,18 @@
       var seq = ['cima', 'base', 'baixo', 'base'], i = 0;
       (function passo() { quadro = seq[i++]; desenhar(); if (i < seq.length) setTimeout(passo, 160); })();
     }
+    function chapeuBruxa(dy) {
+      var CH = [".......kK.", "......kKK.", ".....kKKK.", "....kKRRK.", "..kKKKKKKKk", ".kkkkkkkkkk"], CP = { K: '#7a58b0', k: '#54398a', R: '#e8761a' };
+      CH.forEach(function (lin, yy) { for (var i = 0; i < lin.length; i++) if (CP[lin[i]]) px(1 + i, yy + dy, CP[lin[i]]); });
+    }
     function px(i, j, cor) { x.fillStyle = cor; x.fillRect(i, j, 1, 1); }
     function desenhar() {
       x.clearRect(0, 0, 34, 22);
+      if (arrepio) {   // spooked pose replaces the loaf (only the witch hat, a bit lower, on her head)
+        ARREPIO[arrepio - 1].forEach(function (lin, y) { for (var i = 0; i < 34; i++) if (P[lin[i]]) px(i, y, P[lin[i]]); });
+        if (ESPECIAL.halloween) chapeuBruxa(2);
+        return;
+      }
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
@@ -766,10 +823,7 @@
           px(h[0], h[1], { Y: '#ffd36b', R: '#e0402a', B: '#7fc8ff' }[h[2]]);
         });
       }
-      if (ESPECIAL.halloween) {  // Halloween: a little witch hat
-        var CH = [".......kK.", "......kKK.", ".....kKKK.", "....kKRRK.", "..kKKKKKKKk", ".kkkkkkkkkk"], CP = { K: '#7a58b0', k: '#54398a', R: '#e8761a' };
-        CH.forEach(function (lin, yy) { for (var i = 0; i < lin.length; i++) if (CP[lin[i]]) px(1 + i, yy, CP[lin[i]]); });
-      }
+      if (ESPECIAL.halloween) chapeuBruxa(0);   // Halloween: a little witch hat
       if (ESPECIAL.pascoa) {     // Easter: bunny-ear headband
         [[5,0,'W'],[6,0,'W'],[5,1,'W'],[6,1,'n'],[5,2,'W'],[6,2,'n'],[5,3,'W'],[6,3,'W'],
          [9,0,'W'],[10,0,'W'],[9,1,'W'],[10,1,'n'],[9,2,'W'],[10,2,'n'],[9,3,'W'],[10,3,'W'],
@@ -823,11 +877,18 @@
 
     // --- swat ---
     var ultimoTapa = 0, emCarinho = false, fimCarinho;   // while being petted she does not swat (up to the limit)
-    // at most 3 pets in a row: the 4th becomes a swat; any swat resets the count (stored per device)
-    var LIMITE = 3, CH_SEG = 'firelink.carinhosSeguidos';
+    // at most 3 pets in a row: the 4th becomes a swat; any swat resets the count, and so does
+    // a pause of 3 s since the last pet (stored per device as "count,time of last pet")
+    var LIMITE = 3, PAUSA = 3000, CH_SEG = 'firelink.carinhosSeguidos', memSeg = '0,0';
     function seguidos(v) {
-      try { if (v === undefined) return +localStorage.getItem(CH_SEG) || 0; localStorage.setItem(CH_SEG, v); } catch (e) {}
-      return v || 0;
+      if (v === undefined) {
+        var g = memSeg; try { g = localStorage.getItem(CH_SEG) || g; } catch (e) {}
+        var p = String(g).split(','), n = +p[0] || 0, t = +p[1] || 0;
+        var dt = Date.now() - t;
+        return dt < 0 || dt >= PAUSA ? 0 : n;   // clock moved back: start over
+      }
+      memSeg = v + ',' + Date.now(); try { localStorage.setItem(CH_SEG, memSeg); } catch (e) {}
+      return v;
     }
     var falasLimite = ['Chega de carinho. *PÁ!*', 'Três carinhos é o limite. *PÁ!*', 'Mrrr... *PÁ!* Já deu.', '*PÁ!* ...pode recomeçar.'];
     var falasTapa = ['*PÁ!*', '*tapa* ...depois ronrona, como se nada tivesse acontecido.', 'Hmpf.', '*PÁ PÁ!* Mrrau.'];
@@ -868,21 +929,28 @@
       acordar();
       var nx = dx > 6 ? 1 : 0, ny = dy > -10 ? 1 : 0;
       if (nx !== olhar.x || ny !== olhar.y) { olhar = { x: nx, y: ny }; desenhar(); }
-      if (!toque && d < 18 * e && !quieto && !emCarinho) darTapa(false);   // cursor too close to her face (except while being petted)
+      if (!toque && d < 18 * e && !quieto && !emCarinho && !arrepio) darTapa(false);   // cursor too close to her face (except while being petted)
       dormirDepois(3500);
     }
     addEventListener('mousemove', function (ev) { seguir(ev.clientX, ev.clientY); });
     window.akaliOlhar = function (cx, cy) { seguir(cx, cy, true); };
     // startled by a ghost: hiss and swat (does not count on the scoreboard)
     window.akaliSibila = function () {
+      if (arrepio) return;
       acordar(true); tapa = true; desenhar(); flutuar('pa', 'Hsss!', -14, 0);
       btn.classList.remove('tremor'); void btn.offsetWidth; btn.classList.add('tremor');
       setTimeout(function () { tapa = false; desenhar(); }, 380); dormirDepois(4000);
     };
-    // runs off the scene for a few seconds (Halloween prank)
-    window.akaliFoge = function (ms) {
-      acordar(true); flutuar('pa', 'Hsss!', -14, 0); btn.classList.remove('volta'); btn.classList.add('foge');
-      setTimeout(function () { btn.classList.remove('foge'); btn.classList.add('volta'); dormirDepois(3000); }, ms || 4000);
+    // spooked for a few seconds (Halloween trick): arched pose, bristling fur, sideways hops, hissing
+    window.akaliArrepia = function (ms) {
+      if (arrepio) return;
+      acordar(true); clearTimeout(ronronando); btn.classList.remove('ronrona'); emCarinho = false;
+      arrepio = 1; desenhar(); btn.classList.add('arrepia'); flutuar('pa', 'Hsss!', -14, 0);
+      var n = 0, pelo = setInterval(function () {   // fur and tail bristle (still pose with reduced motion)
+        if (!quieto) { arrepio = arrepio === 1 ? 2 : 1; desenhar(); }
+        if (++n === 10) flutuar('pa', 'Fffff!', -14, 0);
+      }, 200);
+      setTimeout(function () { clearInterval(pelo); arrepio = 0; btn.classList.remove('arrepia'); desenhar(); dormirDepois(3000); }, ms || 4200);
     };
     addEventListener('touchstart', function (ev) { var t = ev.touches[0]; if (t) seguir(t.clientX, t.clientY, true); }, { passive: true });
 
@@ -923,6 +991,7 @@
       // where was she petted? (sprite coordinates, 34x22; keyboard counts as the head)
       var r = c.getBoundingClientRect(), e = r.width / 34;
       var sx = ev.clientX ? (ev.clientX - r.left) / e : 5, sy = ev.clientY ? (ev.clientY - r.top) / e : 5;
+      if (arrepio) { flutuar('pa', 'Hsss!', -14, 0); return; }   // spooked: no petting now
       var rabo = sx >= 24 || !!rabos.base[Math.floor(sx) + ',' + Math.floor(sy)];   // rear end or on the tail
       if (rabo) { ultimoTapa = 0; darTapa(true, falasRabo); return; }
       if (seguidos() >= LIMITE) { ultimoTapa = 0; darTapa(true, falasLimite); return; }
@@ -957,7 +1026,7 @@
     agendarChamado();
 
     // asleep: rising "z", tail wagging, occasional eye opening
-    setInterval(function () { if (!acordada) flutuar('z', 'z', 18, -6); }, 1900);
+    setInterval(function () { if (!acordada && !arrepio) flutuar('z', 'z', 18, -6); }, 1900);
     setInterval(function () { if (Math.random() < .5) abanar(); }, 3000);
     setInterval(function () {
       if (PERIODO === 'noite' || PERIODO === 'madrugada') return;   // at night she sleeps deeply
@@ -1234,7 +1303,7 @@
       })(performance.now());
     }
 
-    // tricks: screen flash, a big ghost jump scare, or Akali running off
+    // tricks: screen flash, a big ghost jump scare, or Akali all spooked
     function travessura() {
       var r = Math.floor(Math.random() * 3);
       if (r === 0) { document.body.classList.remove('pisca'); void document.body.offsetWidth; document.body.classList.add('pisca'); return 'Travessura! Hehehe... a chama piscou.'; }
@@ -1242,7 +1311,7 @@
         var g = document.getElementById('fantasma-grande'); pinta(g, SPR.fantasma, SPR.P); g.hidden = false; g.classList.remove('assusta'); void g.offsetWidth; g.classList.add('assusta');
         setTimeout(function () { g.hidden = true; }, 1600); return 'BUU! Travessura!';
       }
-      if (window.akaliFoge) window.akaliFoge(4000); return 'Travessura! Até a Akali fugiu de medo...';
+      if (window.akaliArrepia) window.akaliArrepia(4200); return 'Travessura! A Akali ficou toda arrepiada...';
     }
     ab.addEventListener('click', function () {
       var eu = window.quemEsta && window.quemEsta();
