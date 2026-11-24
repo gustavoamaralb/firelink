@@ -60,8 +60,11 @@ A single HTML file with no dependencies besides two Google Fonts.
   health (SMART, temperature, last self-test) and Akali's scoreboard of pets and swats per
   person, shared across devices.
 - **Day and night:** a starry sky at night, warm light in the morning.
-- **Special dates:** birthdays, Christmas (a twinkling tree all December), New Year and
-  Mother's Day, with pixel confetti.
+- **Special dates:** birthdays, New Year and Mother's Day, with pixel confetti.
+- **Christmas season** (Nov 15 to Jan 6): a pixel replica of the household tree (silver
+  8-point star, gold straw wreath, bead garlands, red and cream-gold baubles, the teddy
+  bear in a red sweater) whose lights alternate between warm and cool modes, a Santa hat
+  on Akali and seasonal lines from the keeper. The scene scales down to fit small screens.
 
 All artwork is original. The mood is inspired by Dark Souls; this project is not
 affiliated with the game or its creators.

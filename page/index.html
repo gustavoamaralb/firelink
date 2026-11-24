@@ -46,7 +46,7 @@
   canvas#brasas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
   main { position: relative; z-index: 1; width: 100%; max-width: 460px; text-align: center; }
 
-  .cena { display: flex; justify-content: center; align-items: flex-end; gap: 4px; }
+  .cena { display: flex; justify-content: center; align-items: flex-end; gap: 4px; width: max-content; margin: 0 auto; }
   .guardia { position: relative; width: 80px; height: 110px; margin-bottom: 2px; }
   .guardia::before {   /* candle light */
     content: ""; position: absolute; left: 50%; top: 65px; width: 90px; height: 90px;
@@ -194,8 +194,8 @@
   .placar tr.eu td.n::before { content: "▶ "; color: var(--ember); }
   .placar svg { vertical-align: -1px; margin-right: 6px; }
   /* --- Christmas tree --- */
-  .arvore { width: 52px; height: 80px; margin: 0 4px 2px 0; }
-  .arvore canvas { width: 52px; height: 80px; display: block; }
+  .arvore { width: 84px; height: 144px; margin: 0 2px 2px 0; }
+  .arvore canvas { width: 84px; height: 144px; display: block; }
   /* --- sky: starry night, brighter morning --- */
   .ceu { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
   .ceu i { position: absolute; width: 3px; height: 3px; background: #dfe8ff; opacity: .7; animation: piscaestrela 3s steps(2) infinite; }
@@ -249,7 +249,7 @@
 <canvas id="confete" aria-hidden="true"></canvas>
 <main>
   <div class="cena">
-    <div class="arvore" id="arvore" aria-hidden="true" hidden><canvas id="pinheiro" width="13" height="20"></canvas></div>
+    <div class="arvore" id="arvore" aria-hidden="true" hidden><canvas id="pinheiro" width="21" height="36"></canvas></div>
     <div class="guardia" aria-hidden="true"><canvas id="guardia" width="16" height="22"></canvas></div>
     <div class="fogueira" aria-hidden="true"><canvas id="fogo" width="42" height="44"></canvas></div>
     <button class="akali" id="akali" type="button" aria-label="Fazer carinho na Akali"><canvas id="gata" width="34" height="22"></canvas></button>
@@ -345,7 +345,8 @@
   }
   var ESPECIAL = {
     natal: HOJE === '12-24' || HOJE === '12-25',
-    dezembro: new Date().getMonth() === 11,
+    // Christmas season: Nov 15 to Jan 6 (Epiphany, when many Brazilian homes take the tree down)
+    dezembro: (function () { var d = new Date(), m = d.getMonth(), dd = d.getDate(); return m === 11 || (m === 10 && dd >= 15) || (m === 0 && dd <= 6); })(),
     anoNovo: HOJE === '12-31' || HOJE === '01-01',
     maes: diaDasMaes(),
     aniversariantes: Object.keys(ANIVERSARIOS).filter(function (n) { return ANIVERSARIOS[n] === HOJE; })
@@ -385,6 +386,18 @@
       return '<svg viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' + r + '</svg>';
     }
     document.querySelectorAll('[data-sprite]').forEach(function (el) { el.innerHTML = svg(sprites[el.dataset.sprite]); });
+  })();
+
+  // ---------- fit the scene to the available width (it gets wider in the Christmas season) ----------
+  (function () {
+    var cena = document.querySelector('.cena'), main = document.querySelector('main');
+    function ajustar() {
+      cena.style.zoom = '';
+      var k = Math.min(1, main.clientWidth / cena.scrollWidth);
+      if (k < 1) cena.style.zoom = k.toFixed(3);
+    }
+    window.ajustarCena = ajustar;
+    ajustar(); addEventListener('resize', ajustar); addEventListener('load', ajustar);
   })();
 
   // ---------- hooded keeper (original sprite, 16x22) ----------
@@ -479,9 +492,14 @@
       if (ESPECIAL.anoNovo) return 'Feliz Ano Novo, {n}! Que a chama nunca se apague.';
       return null;
     }
+    var falasDezembro = [
+      'O Natal está chegando, {n}. A árvore já brilha ao lado da fogueira.',
+      'A árvore está acesa, {n}. Até a Akali ganhou um gorrinho.',
+      'Que a luz da árvore e a da chama aqueçam esta casa, {n}.'
+    ];
     function cumprimentar(nome) {
       opcoes.hidden = true; caixa.classList.remove('escolhendo');
-      var lista = Math.random() < .5 ? porPeriodo[PERIODO] : falas;
+      var lista = ESPECIAL.dezembro && Math.random() < .4 ? falasDezembro : Math.random() < .5 ? porPeriodo[PERIODO] : falas;
       var f = falaEspecial(nome) || lista[Math.floor(Math.random() * lista.length)];
       falaGuardia = f.replace(/\{n\}/g, nome).replace(/\{o\}/g, pessoas[nome]);
       fimGuardia = function () { trocar.hidden = false; };
@@ -563,6 +581,15 @@
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
+      if (ESPECIAL.dezembro) {   // Santa hat in the Christmas season
+        [[10,0,'W'],[11,0,'W'],[10,1,'W'],[11,1,'W'],                       // pompom
+         [8,0,'R'],[9,0,'R'],[7,1,'R'],[8,1,'r'],[9,1,'R'],
+         [5,2,'R'],[6,2,'R'],[7,2,'r'],[8,2,'R'],[9,2,'R'],
+         [4,3,'R'],[5,3,'R'],[6,3,'r'],[7,3,'R'],[8,3,'R'],[9,3,'R'],[10,3,'R'],
+         [3,4,'W'],[4,4,'W'],[5,4,'W'],[6,4,'W'],[7,4,'W'],[8,4,'W'],[9,4,'W'],[10,4,'W'],[11,4,'W']].forEach(function (h) {
+          px(h[0], h[1], { W: '#f4f1ea', R: '#c4232b', r: '#e8505a' }[h[2]]);
+        });
+      }
       if (acordada) {   // 2x2 blue eyes, pupil pointing where she looks
         [[3, 6], [9, 6]].forEach(function (o) {
           px(o[0], o[1], P.E); px(o[0] + 1, o[1], P.E); px(o[0], o[1] + 1, P.E); px(o[0] + 1, o[1] + 1, P.E);
@@ -813,22 +840,36 @@
     buscar(); setInterval(buscar, 60 * 1000);
   })();
 
-  // ---------- Christmas tree in December (twinkling lights) ----------
+  // ---------- Christmas tree in the Christmas season: pixel replica of the household tree ----------
+  // silver 8-point star, gold straw wreath, gold bead garlands, red and cream-gold baubles,
+  // gold bow, striped bows, the teddy bear in a red sweater, and the two light modes (warm / cool)
   (function () {
     if (!ESPECIAL.dezembro) return;
     document.getElementById('arvore').hidden = false;
+    if (window.ajustarCena) window.ajustarCena();
     var c = document.getElementById('pinheiro'), x = c.getContext('2d');
-    var L = ["......y......", ".....yyy.....", "......g......", ".....ggg.....", "....ggggg....", ".....ggg.....",
-             "....ggggg....", "...ggggggg...", "....ggggg....", "...ggggggg...", "..ggggggggg..", "...ggggggg...",
-             "..ggggggggg..", ".ggggggggggg.", "ggggggggggggg", ".....mmm.....", ".....mmm.....", "....rrrrr....",
-             "....rrrrr....", "............."];
-    var C = { y: '#ffd36b', g: '#2f6b3a', m: '#5a3a22', r: '#8a2a20' };
-    var luzes = [[6,4],[4,6],[8,7],[5,9],[7,10],[3,12],[9,11],[6,13],[2,14],[10,14],[4,13],[8,13]];
-    var paleta = ['#ff5a5a', '#ffd36b', '#7fc8ff', '#9fdc7c'], t = 0;
+    var L = [
+      "..........w..........", "........w.w.w........", ".........wyw.........",
+      ".......wwyYyww.......", ".........wyw.........", "........w.w.w........",
+      "..........w..........", "..........h..........", ".........ggG.........",
+      ".........ooo.........", "........odOdo........", "........odGdo........",
+      ".........ooo.........", "........dggGd........", "......oKogGgb........",
+      "......Rrdhgbod.......", "......RRGgbhgoKo.....", ".......dbbogRr.......",
+      ".......bOGggOR.......", "......dgGOOOggd......", "....oKoGOgogOGgd.....",
+      ".....dGhgogoGgoo.....", ".....dgRrhgGggbRr....", "....cCCRRgGhoogoKo...",
+      "...dCxCggGoobhgGdd...", "...dCCCgoobGggGhgd...", "...dGooogghggcCCGd...",
+      "...GRrGggGgRrCxCgg...", "...gRRghGggRRCCCRr...", ".WdgWggGghGggGggRRdd.",
+      "WWWWWWGggGghGggGgghd.", "WeWWeWhgGggGghGggGgdd", ".WnnW....tTt.........",
+      "KKKKKK...tTt.........", "KWKKWK...............", "WW..WW..............." ];
+    var C = {"w": "#dcdcd2", "y": "#e6c35a", "Y": "#fff3b0", "G": "#1f4a2a", "g": "#2f6b3a", "h": "#3f8a4a", "d": "#173a20", "o": "#c9a24a", "O": "#e8c870", "b": "#d8b45a", "R": "#c4232b", "r": "#ff5a5a", "C": "#e9dcb0", "c": "#c9a24a", "x": "#c4232b", "t": "#5a3a22", "T": "#3d2716", "K": "#c4232b", "e": "#1b1512", "n": "#e9a3a6", "W": "#f4f1ea"};
+    var luzes = [[11, 14], [9, 16], [9, 18], [11, 20], [6, 22], [12, 22], [3, 24], [13, 24], [17, 24], [9, 26], [16, 26], [7, 28], [7, 30], [11, 30], [15, 30], [19, 30]];
+    var modos = [['#ff3b30', '#ffb347', '#ffe066', '#ff7f2a'], ['#3fa9ff', '#3dff8a', '#7fd4ff', '#4dffb8']];
+    var t = 0;
     function desenhar() {
-      x.clearRect(0, 0, 13, 20);
-      L.forEach(function (lin, yy) { for (var i = 0; i < 13; i++) { var k = lin[i]; if (C[k]) { x.fillStyle = C[k]; x.fillRect(i, yy, 1, 1); } } });
-      luzes.forEach(function (l, i) { if ((i + t) % 3) { x.fillStyle = paleta[(i + t) % 4]; x.fillRect(l[0], l[1], 1, 1); } });
+      x.clearRect(0, 0, 21, 36);
+      L.forEach(function (lin, yy) { for (var i = 0; i < 21; i++) { var k = lin[i]; if (C[k]) { x.fillStyle = C[k]; x.fillRect(i, yy, 1, 1); } } });
+      var modo = modos[Math.floor(t / 14) % 2];               // switches warm/cool every ~8 s
+      luzes.forEach(function (l, i) { if ((i + t) % 4) { x.fillStyle = modo[i % 4]; x.fillRect(l[0], l[1], 1, 1); } });
       t++;
     }
     desenhar(); if (!quieto) setInterval(desenhar, 600);
