@@ -215,7 +215,8 @@
   .cesta { width: 56px; height: 36px; margin: 0 2px 2px; }
   .cesta canvas { width: 56px; height: 36px; display: block; }
   canvas#coelho { position: absolute; left: 0; bottom: 0; width: 56px; height: 40px; z-index: 3; pointer-events: none; image-rendering: pixelated; }
-  canvas#fogo { z-index: 1; }
+  canvas#fogo { z-index: 1; pointer-events: none; }            /* drawn over the egg by the logs, but lets taps through */
+  .fogueira::before, .guardia::before, .bolo::before { pointer-events: none; }
   footer { position: relative; }
   .ovo { position: absolute; z-index: 3; width: 18px; height: 27px; padding: 0; border: 0; background: none; cursor: pointer; }
   .fogueira .ovo { z-index: 0; }
