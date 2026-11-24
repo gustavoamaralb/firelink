@@ -64,9 +64,10 @@ A single HTML file with no dependencies besides two Google Fonts.
   candle can be blown out (tap it to make a wish); New Year gets confetti too.
 - **Easter** (Good Friday to Sunday, date computed every year): a basket of eggs by the
   keeper, a pixel bunny that hops across the scene now and then (Akali follows it with her
-  eyes), bunny ears on Akali and seasonal lines. On Easter Sunday there is an egg hunt:
-  four eggs hidden around the page plus one the bunny drops, with a counter and a
-  celebration when all five are found (progress kept per device and per year).
+  eyes), bunny ears on Akali and seasonal lines, plus a relaxed egg hunt over the three
+  days: four eggs hidden around the page and a sparkling golden one the bunny drops in
+  front of the keeper, with a counter and a celebration when all five are found
+  (progress kept per device and per year; in preview mode, tapping the counter restarts).
 - **Mother's Day** has its own, gentler look: falling petals, flowers sprouting along the
   ground of the scene, a rose-tinted flame, a bouquet in the keeper's hands, a flower by
   Akali's ear, and an optional letter (from `config.js`) that the keeper hands over and
