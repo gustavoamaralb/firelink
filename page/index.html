@@ -324,6 +324,16 @@
     }
   }
 
+  // reload when the time of day or the date changes, but only if nobody is using the page
+  (function () {
+    var ultimaInteracao = Date.now(), dia = new Date().getDate();
+    ['mousemove', 'touchstart', 'keydown', 'click'].forEach(function (ev) { addEventListener(ev, function () { ultimaInteracao = Date.now(); }, { passive: true }); });
+    setInterval(function () {
+      var h = new Date().getHours(), p = h < 5 ? 'madrugada' : h < 12 ? 'manha' : h < 18 ? 'tarde' : 'noite';
+      if ((p !== PERIODO || new Date().getDate() !== dia) && Date.now() - ultimaInteracao > 120000) location.reload();
+    }, 60000);
+  })();
+
   // ---------- special dates ----------
   // people, birthdays and Mother's Day come from config.js (kept out of Git; see config.example.js)
   var CFG = window.FIRELINK || {};
@@ -604,20 +614,24 @@
       if (window.placarSoma) window.placarSoma('tapa');
       if (falar && window.akaliFala) { var l = falas || falasTapa; window.akaliFala(l[Math.floor(Math.random() * l.length)]); }
       setTimeout(function () { tapa = false; desenhar(); }, 380);
+      dormirDepois(4000);
     }
 
     // --- wake / sleep ---
     var timerDormir;
     var ultimoMel = 0;
     function acordar(silencio) {
-      clearTimeout(timerDormir);
+      clearTimeout(timerDormir); timerDormir = null;
       if (!acordada) {
         acordada = true; desenhar();
         var agora = Date.now();
         if (!silencio && !quieto && agora - ultimoMel > 8000) { ultimoMel = agora; flutuar('mel', 'Mel...', 22, -14); }
       }
     }
-    function dormirDepois(ms) { clearTimeout(timerDormir); timerDormir = setTimeout(function () { acordada = false; desenhar(); }, ms); }
+    function dormirDepois(ms) {
+      clearTimeout(timerDormir);
+      timerDormir = setTimeout(function () { timerDormir = null; acordada = false; desenhar(); }, ms);
+    }
 
     // --- eyes following the cursor (or finger) ---
     function seguir(cx, cy, toque) {   // toque = finger on a phone: only moves the eyes (the click decides pet/swat)
@@ -625,7 +639,7 @@
       var ox = r.left + 7 * e, oy = r.top + 7 * e;          // between the eyes
       var dx = cx - ox, dy = cy - oy, d = Math.hypot(dx, dy);
       if (d > 320) { if (acordada && !timerDormir) dormirDepois(2500); return; }
-      acordar(); timerDormir = null;
+      acordar();
       var nx = dx > 6 ? 1 : 0, ny = dy > -10 ? 1 : 0;
       if (nx !== olhar.x || ny !== olhar.y) { olhar = { x: nx, y: ny }; desenhar(); }
       if (!toque && d < 18 * e && !quieto && !emCarinho) darTapa(false);   // cursor too close to her face (except while being petted)
@@ -709,7 +723,7 @@
     setInterval(function () { if (Math.random() < .5) abanar(); }, 3000);
     setInterval(function () {
       if (PERIODO === 'noite' || PERIODO === 'madrugada') return;   // at night she sleeps deeply
-      if (!acordada && Math.random() < .35) { acordada = true; desenhar(); setTimeout(function () { if (!timerDormir) { acordada = false; desenhar(); } }, 900); }
+      if (!acordada && Math.random() < .35) { acordada = true; desenhar(); dormirDepois(900); }
     }, 7000);
   })();
 
