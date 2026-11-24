@@ -1,0 +1,19 @@
+#!/bin/sh
+# Disk health for the home page (runs as root from cron; smartctl needs root).
+/usr/sbin/smartctl -j -H -A -l selftest /dev/sda 2>/dev/null | /usr/bin/python3 -I -c '
+import json, sys, time
+d = json.load(sys.stdin)
+attrs = {a["id"]: a for a in d.get("ata_smart_attributes", {}).get("table", [])}
+raw = lambda i: attrs.get(i, {}).get("raw", {}).get("value")
+horas = d.get("power_on_time", {}).get("hours") or raw(9) or 0
+testes = d.get("ata_smart_self_test_log", {}).get("standard", {}).get("table", [])
+ult = None
+if testes:
+    t = testes[0]
+    ult = {"tipo": t.get("type", {}).get("string"), "resultado": t.get("status", {}).get("string"),
+           "passou": t.get("status", {}).get("passed"), "horas_atras": max(0, horas - t.get("lifetime_hours", horas))}
+saida = {"saudavel": d.get("smart_status", {}).get("passed"), "realocados": raw(5), "pendentes": raw(197),
+         "temperatura": d.get("temperature", {}).get("current"), "horas_ligado": horas, "ultimo_teste": ult,
+         "atualizado": int(time.time())}
+open("/srv/www/firelink/smart.json.tmp", "w").write(json.dumps(saida))
+' && mv /srv/www/firelink/smart.json.tmp /srv/www/firelink/smart.json && chmod 644 /srv/www/firelink/smart.json

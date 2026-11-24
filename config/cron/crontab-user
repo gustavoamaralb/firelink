@@ -1,0 +1,3 @@
+# firelink: disk usage for the home page
+*/5 * * * * $HOME/bin/firelink-disk.sh
+@reboot sleep 30 && $HOME/bin/firelink-disk.sh

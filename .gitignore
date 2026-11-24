@@ -1,0 +1,6 @@
+# household data (people, birthdays): server only
+page/config.js
+
+# temporary files
+*.tmp
+__pycache__/

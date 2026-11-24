@@ -1,0 +1,13 @@
+[Unit]
+Description=firelink home page API (status and Akali scoreboard)
+After=network.target
+
+[Service]
+# %USUARIO% and %HOME% are filled in by install.sh with the user who ran sudo
+User=%USUARIO%
+ExecStart=/usr/bin/python3 -I %HOME%/firelink-api/servidor.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

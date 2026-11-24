@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0806">
+<title>Firelink</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'><rect x='3' y='1' width='2' height='1' fill='%23ffd36b'/><rect x='2' y='2' width='4' height='2' fill='%23ff9a2e'/><rect x='2' y='4' width='4' height='2' fill='%23ff5a1a'/><rect x='1' y='6' width='6' height='1' fill='%23704a2c'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0806;
+    --gold: #e0b45c;
+    --gold-dark: #7a5a2a;
+    --text: #efe2c6;
+    --muted: #a89272;
+    --ember: #ff8a2b;
+    --panel: #15100b;
+    --panel-hover: #24170d;
+    --px: 4px; /* size of one border "pixel" */
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(ellipse 55% 40% at 50% 100%, rgba(255,110,30,.12), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: "VT323", ui-monospace, Consolas, monospace;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px;
+    overflow-x: hidden;
+    image-rendering: pixelated;
+    font-variant-ligatures: none;
+  }
+  /* very subtle scanlines, old-screen style */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 2;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
+  }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+  canvas#brasas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  main { position: relative; z-index: 1; width: 100%; max-width: 460px; text-align: center; }
+
+  .cena { display: flex; justify-content: center; align-items: flex-end; gap: 4px; }
+  .guardia { position: relative; width: 80px; height: 110px; margin-bottom: 2px; }
+  .guardia::before {   /* candle light */
+    content: ""; position: absolute; left: 50%; top: 65px; width: 90px; height: 90px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,170,70,.28), transparent 65%);
+    animation: pulsar 1.8s steps(3) infinite;
+  }
+  canvas#guardia { position: relative; width: 80px; height: 110px; }
+  .fogueira { position: relative; width: 168px; height: 176px; }
+
+  .dialogo {
+    position: relative; text-align: left;
+    margin: 28px var(--px) 40px; padding: 18px 18px 14px;
+    background: #0e0b08;
+    box-shadow:
+      0 calc(-1 * var(--px)) 0 0 var(--text),
+      0 var(--px) 0 0 var(--text),
+      calc(-1 * var(--px)) 0 0 0 var(--text),
+      var(--px) 0 0 0 var(--text),
+      inset 0 0 0 var(--px) #2a2018;
+    cursor: pointer; min-height: 92px;
+  }
+  .dialogo .nome {
+    position: absolute; top: -14px; left: 14px; padding: 2px 8px;
+    background: var(--bg); color: var(--gold);
+    font-family: "Silkscreen", monospace; font-size: 12px; letter-spacing: .08em;
+    box-shadow: 0 0 0 2px var(--gold-dark);
+  }
+  .dialogo p { margin: 0; font-size: 24px; line-height: 1.15; color: var(--text); min-height: 2.3em; }
+  .dialogo .seta { position: absolute; right: 12px; bottom: 6px; color: var(--gold); font-size: 16px; opacity: 0; }
+  .dialogo.fim .seta { opacity: 1; animation: piscar .8s steps(2) infinite; }
+  .dialogo.escolhendo .seta { display: none; }
+  .dialogo.escolhendo p { min-height: 0; }
+  .opcoes { display: grid; gap: 2px; margin: 10px 0 2px 22px; }
+  .opcoes button {
+    position: relative; text-align: left; background: none; border: 0; padding: 2px 0;
+    font-family: "Silkscreen", monospace; font-size: 18px; letter-spacing: .06em;
+    color: var(--muted); cursor: pointer;
+  }
+  .opcoes button::before {
+    content: "▶"; position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+    color: var(--ember); font-family: "VT323", monospace; font-size: 20px; opacity: 0;
+  }
+  .opcoes button:hover, .opcoes button:focus-visible { color: var(--gold); outline: none; }
+  .opcoes button:hover::before, .opcoes button:focus-visible::before { opacity: 1; animation: piscar .6s steps(2) infinite; }
+  .trocar {
+    position: absolute; left: 14px; bottom: -26px; background: none; border: 0; padding: 0;
+    font-family: "VT323", monospace; font-size: 18px; color: var(--gold-dark); cursor: pointer;
+  }
+  .trocar:hover, .trocar:focus-visible { color: var(--gold); outline: none; text-decoration: underline; }
+  .fogueira::before {
+    content: ""; position: absolute; left: 50%; bottom: 6px; width: 260px; height: 200px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at 50% 80%, rgba(255,120,40,.22), transparent 65%);
+    animation: pulsar 2.4s steps(4) infinite;
+  }
+  @keyframes pulsar { 0%,100% { opacity: .8; } 50% { opacity: 1; } }
+  canvas#fogo { position: relative; width: 168px; height: 176px; }
+
+  h1 {
+    font-family: "Silkscreen", "VT323", monospace; font-weight: 700;
+    font-size: clamp(32px, 10vw, 48px); letter-spacing: .08em;
+    margin: 14px 0 4px; color: var(--gold);
+    text-shadow: 4px 4px 0 #3a2410, 0 0 20px rgba(255,140,50,.25);
+  }
+  .divisor { display: flex; justify-content: center; gap: 6px; margin: 10px 0 8px; }
+  .divisor i { display: block; width: 8px; height: 8px; background: var(--gold-dark); }
+  .divisor i:nth-child(3) { background: var(--ember); }
+  p.sub { margin: 0 0 30px; color: var(--muted); font-size: 24px; }
+
+  nav { display: grid; gap: 22px; padding: 0 var(--px); }
+  /* panel with pixelated borders (notched corners) */
+  a.botao {
+    position: relative; display: block;
+    padding: 14px 18px 12px;
+    background: var(--panel);
+    color: var(--text); text-decoration: none;
+    box-shadow:
+      0 calc(-1 * var(--px)) 0 0 var(--gold-dark),
+      0 var(--px) 0 0 var(--gold-dark),
+      calc(-1 * var(--px)) 0 0 0 var(--gold-dark),
+      var(--px) 0 0 0 var(--gold-dark),
+      0 calc(2 * var(--px)) 0 0 #000;
+    transition: none;
+  }
+  a.botao:hover, a.botao:focus-visible {
+    background: var(--panel-hover); outline: none;
+    box-shadow:
+      0 calc(-1 * var(--px)) 0 0 var(--gold),
+      0 var(--px) 0 0 var(--gold),
+      calc(-1 * var(--px)) 0 0 0 var(--gold),
+      var(--px) 0 0 0 var(--gold),
+      0 calc(2 * var(--px)) 0 0 #000,
+      0 0 24px 4px rgba(255,120,40,.18);
+  }
+  /* retro game menu arrow */
+  a.botao::before {
+    content: "▶"; position: absolute; left: -34px; top: 50%; transform: translateY(-50%);
+    color: var(--ember); font-size: 22px; opacity: 0;
+  }
+  a.botao:hover::before, a.botao:focus-visible::before { opacity: 1; animation: piscar .6s steps(2) infinite; }
+  @keyframes piscar { 50% { opacity: 0; } }
+  .titulo {
+    font-family: "Silkscreen", "VT323", monospace; font-weight: 400;
+    font-size: 20px; letter-spacing: .06em; color: var(--gold);
+  }
+  .desc { color: var(--muted); font-size: 22px; line-height: 1.1; margin-top: 4px; }
+
+  .disco { margin: 34px var(--px) 0; text-align: left; }
+  .disco-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .disco-topo b { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; letter-spacing: .1em; color: var(--gold-dark); }
+  .disco-topo span { font-size: 20px; color: var(--muted); }
+  .barra {
+    height: 18px; background: #0e0b08; position: relative;
+    box-shadow: 0 -3px 0 0 var(--gold-dark), 0 3px 0 0 var(--gold-dark), -3px 0 0 0 var(--gold-dark), 3px 0 0 0 var(--gold-dark), 0 6px 0 0 #000;
+  }
+  .barra .usado {
+    height: 100%; width: 0; min-width: 6px;
+    background: repeating-linear-gradient(90deg, var(--cor, #f06818) 0 6px, var(--cor2, #d4420e) 6px 8px);
+    box-shadow: inset 0 3px 0 rgba(255,220,150,.35);
+    transition: width .8s steps(12);
+  }
+  .barra.alerta { --cor: #e0402a; --cor2: #a8241a; }
+  .disco-legenda { display: flex; justify-content: space-between; margin-top: 10px; font-size: 19px; color: var(--muted); }
+  .disco-legenda .q { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: 0; }
+  .usado-q { background: #f06818; } .livre-q { background: #0e0b08; box-shadow: 0 0 0 2px var(--gold-dark); }
+
+  /* --- status lights --- */
+  .luz { display: inline-block; width: 8px; height: 8px; margin: 0 10px 2px 0; vertical-align: middle; background: #5a5046; box-shadow: 0 0 0 2px #000; }
+  .luz.ok { background: #7fd45a; box-shadow: 0 0 0 2px #000, 0 0 8px rgba(127,212,90,.6); animation: pulsoluz 2.4s steps(2) infinite; }
+  .luz.fora { background: #e0402a; box-shadow: 0 0 0 2px #000, 0 0 8px rgba(224,64,42,.6); }
+  @keyframes pulsoluz { 50% { opacity: .55; } }
+  /* --- server (uptime, disk health) --- */
+  .servidor { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 4px; font-size: 19px; color: var(--muted); }
+  .servidor .ic { display: inline-block; width: 22px; text-align: center; margin-right: 8px; }
+  .servidor .bom { color: #9fdc7c; } .servidor .ruim { color: #ff7a5c; }
+  /* --- scoreboard --- */
+  .placar { margin: 30px var(--px) 0; text-align: left; }
+  .placar b { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; letter-spacing: .1em; color: var(--gold-dark); }
+  .placar table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 20px; color: var(--muted); }
+  .placar td { padding: 2px 0; }
+  .placar td.n { width: 40%; color: var(--text); }
+  .placar td.v { text-align: right; white-space: nowrap; }
+  .placar tr.eu td.n { color: var(--gold); }
+  .placar tr.eu td.n::before { content: "▶ "; color: var(--ember); }
+  .placar svg { vertical-align: -1px; margin-right: 6px; }
+  /* --- Christmas tree --- */
+  .arvore { width: 52px; height: 80px; margin: 0 4px 2px 0; }
+  .arvore canvas { width: 52px; height: 80px; display: block; }
+  /* --- sky: starry night, brighter morning --- */
+  .ceu { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .ceu i { position: absolute; width: 3px; height: 3px; background: #dfe8ff; opacity: .7; animation: piscaestrela 3s steps(2) infinite; }
+  @keyframes piscaestrela { 50% { opacity: .15; } }
+  body.noite { background: radial-gradient(ellipse 55% 40% at 50% 100%, rgba(255,110,30,.10), transparent 70%), #05060c; }
+  body.madrugada { background: radial-gradient(ellipse 55% 40% at 50% 100%, rgba(255,110,30,.08), transparent 70%), #030409; }
+  body.manha { background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,190,120,.10), transparent 70%), radial-gradient(ellipse 55% 40% at 50% 100%, rgba(255,110,30,.12), transparent 70%), #110d09; }
+  canvas#confete { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+
+  footer { margin-top: 34px; color: var(--muted); font-size: 21px; line-height: 1.35; }
+  footer b { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; color: var(--gold-dark); letter-spacing: .1em; }
+  code { font-family: "VT323", monospace; font-size: 21px; color: var(--text); background: #1b140d; padding: 0 6px; }
+
+  .arquivos { display: inline-grid; grid-template-columns: auto auto; align-items: center; justify-items: start; column-gap: 10px; row-gap: 8px; margin-top: 8px; }
+  .os { display: block; width: 24px; height: 28px; justify-self: center; }
+  .os svg { width: 100%; height: 100%; display: block; shape-rendering: crispEdges; }
+
+  @media (max-width: 420px) { a.botao::before { left: -26px; } }
+  .akali { position: relative; width: 136px; height: 88px; padding: 0; margin: 0 0 2px; border: 0; background: none; cursor: pointer; }
+  .akali canvas { width: 136px; height: 88px; display: block; }
+  .akali.tremor { animation: tremor .35s steps(4); }
+  @keyframes tremor { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 50% { transform: translateX(3px); } 75% { transform: translateX(-2px); } }
+  .flutua.mel { color: #f4f1ea; font-family: "VT323", monospace; font-size: 20px; white-space: nowrap; text-shadow: 2px 2px 0 #2a1d14; animation-duration: 2.6s; }
+  .akali.ronrona canvas { animation: vibra .09s steps(2) infinite; }
+  @keyframes vibra { 0% { transform: translate(0, 0); } 50% { transform: translate(1px, 0); } }
+  .flutua.rr { color: #d9ccb4; font-family: "VT323", monospace; font-size: 18px; white-space: nowrap; text-shadow: 2px 2px 0 #2a1d14; animation-duration: 2.8s; }
+  .flutua.chamado { color: #fff1b8; font-family: "Silkscreen", monospace; font-size: 13px; white-space: nowrap; text-shadow: 2px 2px 0 #3a2410, 0 0 10px rgba(255,200,120,.5); animation-duration: 3s; }
+  .flutua.pa { color: #ffd36b; font-size: 14px; font-weight: 700; text-shadow: 2px 2px 0 #3a2410; }
+  @media (max-width: 440px) {
+    .akali, .akali canvas { width: 102px; height: 66px; }
+    .fogueira, canvas#fogo { width: 126px; height: 132px; }
+  }
+  .akali:focus-visible { outline: 2px dashed var(--gold-dark); outline-offset: 4px; }
+  .flutua { position: absolute; pointer-events: none; font-family: "Silkscreen", monospace; animation: subir 2.2s steps(11) forwards; }
+  .flutua.z { color: #b9c7d6; font-size: 12px; }
+  .flutua.coracao { width: 12px; height: 11px; }
+  @keyframes subir { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx, 6px), -42px); opacity: 0; } }
+  @media (max-width: 370px) { .guardia { transform: scale(.85); transform-origin: bottom center; } }
+  @media (prefers-reduced-motion: reduce) {
+    .fogueira::before, .guardia::before, a.botao:hover::before, .dialogo.fim .seta { animation: none; }
+    .flutua { display: none; }
+    .luz.ok, .ceu i { animation: none; }
+    .akali.ronrona canvas { animation: none; }
+    canvas#brasas { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="ceu" id="ceu" aria-hidden="true"></div>
+<canvas id="brasas" aria-hidden="true"></canvas>
+<canvas id="confete" aria-hidden="true"></canvas>
+<main>
+  <div class="cena">
+    <div class="arvore" id="arvore" aria-hidden="true" hidden><canvas id="pinheiro" width="13" height="20"></canvas></div>
+    <div class="guardia" aria-hidden="true"><canvas id="guardia" width="16" height="22"></canvas></div>
+    <div class="fogueira" aria-hidden="true"><canvas id="fogo" width="42" height="44"></canvas></div>
+    <button class="akali" id="akali" type="button" aria-label="Fazer carinho na Akali"><canvas id="gata" width="34" height="22"></canvas></button>
+  </div>
+
+  <h1>FIRELINK</h1>
+  <div class="divisor" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+  <div class="dialogo" id="dialogo" role="status" aria-live="polite">
+    <span class="nome" id="quemfala">Guardiã da Chama</span>
+    <p id="fala"></p>
+    <div class="opcoes" id="opcoes" hidden></div>
+    <button class="trocar" id="trocar" type="button" hidden>não é você?</button>
+    <span class="seta" aria-hidden="true">▼</span>
+  </div>
+
+  <nav>
+    <a class="botao" id="jellyfin" href="#">
+      <div class="titulo"><i class="luz" id="luz-jellyfin" title="verificando..."></i>eCinema</div>
+      <div class="desc">Filmes, animações, séries e aulas</div>
+    </a>
+    <a class="botao" id="kavita" href="#">
+      <div class="titulo"><i class="luz" id="luz-kavita" title="verificando..."></i>eBiblioteca</div>
+      <div class="desc">Quadrinhos, ficção e acadêmicos</div>
+    </a>
+  </nav>
+
+  <section class="disco" id="disco" aria-label="Espaço em disco do servidor">
+    <div class="disco-topo"><b>DISCO</b><span id="disco-txt">…</span></div>
+    <div class="barra" role="meter" aria-valuemin="0" aria-valuemax="100" id="disco-barra"><div class="usado" id="disco-usado"></div></div>
+    <div class="disco-legenda"><span><i class="q usado-q"></i>usado <span id="disco-u">…</span></span><span><i class="q livre-q"></i>livre <span id="disco-l">…</span></span></div>
+    <ul class="servidor">
+      <li id="srv-ligado"><span class="ic">🔥</span>…</li>
+      <li id="srv-hd"><span class="ic">▣</span>…</li>
+    </ul>
+  </section>
+
+  <section class="placar" id="placar" hidden aria-label="Placar da Akali">
+    <b>PLACAR DA AKALI</b>
+    <table><tbody id="placar-linhas"></tbody></table>
+  </section>
+
+  <footer>
+    <b>ARQUIVOS</b><br>
+    <div class="arquivos">
+      <span class="os" data-sprite="win" title="Windows"></span><code>\\firelink</code>
+      <span class="os" data-sprite="tux" title="Linux"></span><code>smb://firelink.local</code>
+    </div>
+  </footer>
+</main>
+<script src="config.js"></script>
+<script>
+  // links reuse the address that was typed (firelink.local or the IP)
+  var h = location.hostname || 'firelink.local';
+  document.getElementById('jellyfin').href = 'http://' + h + ':8096';
+  document.getElementById('kavita').href   = 'http://' + h + ':5000';
+
+  var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- time of day ----------
+  var HORA = new Date().getHours();
+  var PERIODO = HORA < 5 ? 'madrugada' : HORA < 12 ? 'manha' : HORA < 18 ? 'tarde' : 'noite';
+  document.body.classList.add(PERIODO);
+  if (PERIODO === 'noite' || PERIODO === 'madrugada') {
+    var ceu = document.getElementById('ceu');
+    for (var e = 0; e < 46; e++) {
+      var st = document.createElement('i');
+      st.style.left = (Math.random() * 100).toFixed(2) + '%'; st.style.top = (Math.random() * 55).toFixed(2) + '%';
+      st.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+      if (Math.random() < .2) { st.style.width = st.style.height = '2px'; }
+      ceu.appendChild(st);
+    }
+  }
+
+  // ---------- special dates ----------
+  // people, birthdays and Mother's Day come from config.js (kept out of Git; see config.example.js)
+  var CFG = window.FIRELINK || {};
+  var ANIVERSARIOS = CFG.birthdays || {};
+  var HOJE = (function () { var d = new Date(); return ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); })();
+  function diaDasMaes() {               // 2nd Sunday of May (Mother's Day in Brazil)
+    var d = new Date(), maio = new Date(d.getFullYear(), 4, 1), dom = 1 + (7 - maio.getDay()) % 7 + 7;
+    return d.getMonth() === 4 && d.getDate() === dom;
+  }
+  var ESPECIAL = {
+    natal: HOJE === '12-24' || HOJE === '12-25',
+    dezembro: new Date().getMonth() === 11,
+    anoNovo: HOJE === '12-31' || HOJE === '01-01',
+    maes: diaDasMaes(),
+    aniversariantes: Object.keys(ANIVERSARIOS).filter(function (n) { return ANIVERSARIOS[n] === HOJE; })
+  };
+
+  // ---------- pixel-art icons (hand-drawn as character grids) ----------
+  (function () {
+    var sprites = {
+      win: { cores: { r: '#f25022', g: '#7fba00', b: '#00a4ef', y: '#ffb900' }, linhas: [
+        '........',
+        '........',
+        'rrr.ggg.',
+        'rrr.ggg.',
+        'rrr.ggg.',
+        '........',
+        'bbb.yyy.',
+        'bbb.yyy.',
+        'bbb.yyy.',
+        '........' ] },
+      tux: { cores: { k: '#5a5650', w: '#f4efe4', o: '#f2a516', e: '#14110e' }, linhas: [
+        '..kkkk..',
+        '.kkkkkk.',
+        '.kwkkwk.',
+        '.keooek.',
+        'kkwooWkk'.replace('W', 'w'),
+        'kwwwwwwk',
+        'kwwwwwwk',
+        'kkwwwwkk',
+        '.kwwwwk.',
+        'ooo..ooo' ] }
+    };
+    function svg(s) {
+      var w = s.linhas[0].length, h = s.linhas.length, r = '';
+      s.linhas.forEach(function (lin, y) {
+        for (var x = 0; x < w; x++) { var c = s.cores[lin[x]]; if (c) r += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + c + '"/>'; }
+      });
+      return '<svg viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' + r + '</svg>';
+    }
+    document.querySelectorAll('[data-sprite]').forEach(function (el) { el.innerHTML = svg(sprites[el.dataset.sprite]); });
+  })();
+
+  // ---------- hooded keeper (original sprite, 16x22) ----------
+  (function () {
+    var c = document.getElementById('guardia'), x = c.getContext('2d');
+    var P = { H:'#3b3540', h:'#5a5262', s:'#141016', f:'#b8957c', c:'#2b2630', C:'#3a3340',
+              g:'#b08a4a', e:'#ff9a2e', y:'#fff1b8', w:'#d9ccb4', k:'#6e6474', r:'#1d1920' };
+    var L = [
+      "......hHHh......", ".....hHHHHh.....", "....hHHHHHHh....", "....HHssssHH....",
+      "...hHssssssHh...", "...HHssssssHH...", "...HHsssfssHH...", "...HHHsfffsHH...",
+      "..hHHHHssHHHHh..", "..HHcCCggCCcHH..", "..HccCCCCCCccH..", ".hHccCC..CCccHh.",
+      ".HHcCCfyyfCCcHH.", ".HHcCCfeefCCcHH.", ".HccCCCwwCCCccH.", ".HcccCCCCCCcccH.",
+      "hHcccCCCCCCcccHh", "HHcccCCkkCCcccHH", "HHccCCCkkCCCccHH", "HcccCCCkkCCCcccH",
+      "HcccCCkkkkCCcccH", "rrrrrrrrrrrrrrrr" ];
+    function desenhar(t) {
+      x.clearRect(0, 0, 16, 22);
+      L.forEach(function (lin, yy) {
+        for (var xx = 0; xx < 16; xx++) { var k = lin[xx]; if (P[k]) { x.fillStyle = P[k]; x.fillRect(xx, yy, 1, 1); } }
+      });
+      // flickering candle flame: alternates the top pixels
+      var alto = t % 3;
+      x.fillStyle = '#00000000';
+      if (alto === 1) { x.fillStyle = '#ffcc5a'; x.fillRect(7, 11, 2, 1); }
+      if (alto === 2) { x.fillStyle = '#fff1b8'; x.fillRect(8, 11, 1, 1); x.fillStyle = '#ff9a2e'; x.fillRect(7, 12, 1, 1); }
+    }
+    var t = 0; desenhar(t);
+    if (!quieto) setInterval(function () { desenhar(++t); }, 260);
+  })();
+
+  // ---------- dialogue box: the keeper asks who arrived and remembers it (per device) ----------
+  (function () {
+    var pessoas = CFG.people || { Visitante: 'o' };    // name: Portuguese gender ending ("bem-vindo"/"bem-vinda")
+    var falas = [
+      'Bem-vind{o} de volta, {n}. O que deseja ver hoje?',
+      '{n}, a chama ainda queima. Descanse um pouco.',
+      'Que bom te ver, {n}. Sente-se junto ao fogo.',
+      'Há histórias à sua espera, {n}. Escolha a sua.',
+      'Que a chama guie seus passos, {n}. O que vamos ver?',
+      '{n}, filmes ou livros esta noite?',
+      'A Akali guardou seu lugar perto do fogo, {n}.',
+      'Psiu, {n}... a Akali está dormindo. O que vamos ver?'
+    ];
+    var CHAVE = 'firelink.quem';
+    window.quemEsta = function () { var q = ler(); return pessoas[q] ? q : null; };
+    function ler() { try { return localStorage.getItem(CHAVE); } catch (e) { return null; } }
+    function gravar(v) { try { v ? localStorage.setItem(CHAVE, v) : localStorage.removeItem(CHAVE); } catch (e) {} }
+
+    var caixa = document.getElementById('dialogo'), p = document.getElementById('fala');
+    var opcoes = document.getElementById('opcoes'), trocar = document.getElementById('trocar');
+    var timer = null, texto = '', depois = null, rotulo = document.getElementById('quemfala'), falaGuardia = '', fimGuardia = null, volta = null;
+
+    function escrever(t, aoTerminar) {
+      clearInterval(timer); texto = t; depois = aoTerminar || null;
+      caixa.classList.remove('fim'); p.textContent = '';
+      if (quieto) return terminar();
+      var i = 0;
+      timer = setInterval(function () { p.textContent = texto.slice(0, ++i); if (i >= texto.length) terminar(); }, 38);
+    }
+    function terminar() {
+      clearInterval(timer); timer = null; p.textContent = texto; caixa.classList.add('fim');
+      if (depois) { var f = depois; depois = null; f(); }
+    }
+    // tapping the box skips the typing animation (without blocking the choice buttons)
+    caixa.addEventListener('click', function (ev) { if (timer && !ev.target.closest('button')) terminar(); });
+
+    function perguntar() {
+      trocar.hidden = true; caixa.classList.add('escolhendo');
+      escrever('Quem se aproxima da fogueira?', function () {
+        opcoes.innerHTML = '';
+        Object.keys(pessoas).forEach(function (nome) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = nome;
+          b.addEventListener('click', function () { gravar(nome); cumprimentar(nome); });
+          opcoes.appendChild(b);
+        });
+        opcoes.hidden = false;
+      });
+    }
+    var porPeriodo = {
+      manha: ['Bom dia, {n}. A chama aqueceu a noite toda.', 'Bom dia, {n}! Café e uma boa história?'],
+      tarde: ['Boa tarde, {n}. O que vamos ver hoje?', 'Boa tarde, {n}. A fogueira está à sua espera.'],
+      noite: ['Boa noite, {n}. A fogueira está acesa para você.', 'Noite tranquila, {n}. Filmes ou livros?'],
+      madrugada: ['Ainda acordad{o}, {n}? A Akali já está no décimo sono.', 'Madrugada, {n}... só a chama e eu ainda estamos de pé.']
+    };
+    function falaEspecial(nome) {
+      var a = ESPECIAL.aniversariantes;
+      if (a.indexOf(nome) >= 0) return 'Feliz aniversário, {n}! A fogueira brilha mais forte hoje por você.';
+      if (a.indexOf('Akali') >= 0) return 'Hoje é aniversário da Akali! Ela merece um carinho extra... mas perto do rabo, não.';
+      var outro = a.filter(function (x) { return x !== nome && pessoas[x]; })[0];
+      if (outro) return 'Hoje é aniversário d' + pessoas[outro] + ' ' + outro + ', {n}! Não esqueça de dar parabéns.';
+      if (ESPECIAL.maes && (CFG.mothersDay || []).indexOf(nome) >= 0) return 'Feliz Dia das Mães, {n}! A chama desta casa também é sua.';
+      if (ESPECIAL.natal) return 'Feliz Natal, {n}! Que a chama aqueça esta casa.';
+      if (ESPECIAL.anoNovo) return 'Feliz Ano Novo, {n}! Que a chama nunca se apague.';
+      return null;
+    }
+    function cumprimentar(nome) {
+      opcoes.hidden = true; caixa.classList.remove('escolhendo');
+      var lista = Math.random() < .5 ? porPeriodo[PERIODO] : falas;
+      var f = falaEspecial(nome) || lista[Math.floor(Math.random() * lista.length)];
+      falaGuardia = f.replace(/\{n\}/g, nome).replace(/\{o\}/g, pessoas[nome]);
+      fimGuardia = function () { trocar.hidden = false; };
+      escrever(falaGuardia, fimGuardia);
+    }
+    trocar.addEventListener('click', function () { gravar(null); perguntar(); });
+
+    // Akali "speaks" for a few seconds, then the keeper resumes
+    window.akaliFala = function (t) {
+      if (caixa.classList.contains('escolhendo') || !falaGuardia) return false;
+      clearTimeout(volta); rotulo.textContent = 'Akali'; trocar.hidden = true;
+      escrever(t, function () {
+        volta = setTimeout(function () { rotulo.textContent = 'Guardiã da Chama'; escrever(falaGuardia, fimGuardia); }, 2600);
+      });
+      return true;
+    };
+
+    var quem = ler();
+    if (quem && pessoas[quem]) cumprimentar(quem); else perguntar();
+  })();
+
+  // ---------- Akali (original sprite of the house cat: Angora with Siamese markings) ----------
+  (function () {
+    var c = document.getElementById('gata'), x = c.getContext('2d'), btn = document.getElementById('akali');
+    var P = { W:'#f4f1ea', w:'#cdc6ba', B:'#2e221c', b:'#6e5242', c:'#8f6e58', f:'#c4a07e', T:'#3a2c22',
+              t:'#56402f', u:'#7a5e48', p:'#e9a3a6', E:'#8fd3f5', k:'#1b1512', n:'#e2b9b9', s:'#17110d' };
+    var base = [
+      "..................................", "..B.......b.......................", "..BB.....bb.......................",
+      "..BnB...bnb.......................", "..BBBbbbbbb.......................", ".BBBBBbbbbbW.......w.w............",
+      ".BBBBBbWWWWWw...w.WWWWW.w.........", ".BBkkBBWWkkWWw.WWWWffWWWWW........", "wBBBBBWWWWWWWWWWWffffWWWWWw.......",
+      "wBBBBBWpWWWWWWWWWWffWWWWWWWw......", ".wwBBWWWWWWWWWWWWWWWWWWWWWWW......", "w.wWWWWWWWWWWWWWWWWWWWWWffWWw.....",
+      ".WWWWWWWWWWWWWWWWWWWWWWWffWWWw....", "wWWWWWWWWWWWWWWWWWWWWWWWWWWWWw....", ".WWWWWWWWWWWWWWWWWWWWWWWWWWWWw....",
+      "w.wWWWWWWWWWWWWWWWWWWWWWWWWWw.....", ".wWWWWWwwWWWWWWWWWWWWWWWWWWw......", "..WnWnW.wwwwwwwwwwwwwwwwww........",
+      "..WWWWW...........................", "...ww.............................", "..ssssssssssssssssssssssssssssss..",
+      ".................................." ];
+    var acordada = false, quadro = 'base', tapa = false, olhar = { x: 0, y: 1 };
+
+    // tail: fluffy curve drawn separately from the body; only the tip changes between frames
+    var pontos = {
+      base:  [[29.4,15.2],[31,17.3],[28,18.7],[22,19],[16,18.4],[11.8,16.4]],
+      cima:  [[29.4,15.2],[31,17.3],[28,18.7],[22,19],[16.2,18],[12.6,14.8]],
+      baixo: [[29.4,15.2],[31,17.3],[28,18.7],[22,19],[16,18.6],[11,18]]
+    };
+    function curva(pts) {                       // Catmull-Rom spline through the points
+      var out = [];
+      for (var i = 0; i < pts.length - 1; i++) {
+        var p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, pts.length - 1)];
+        for (var k = 0; k < 60; k++) {
+          var t = k / 60, t2 = t * t, t3 = t2 * t, q = [];
+          for (var a = 0; a < 2; a++) q[a] = .5 * (2 * p1[a] + (-p0[a] + p2[a]) * t + (2 * p0[a] - 5 * p1[a] + 4 * p2[a] - p3[a]) * t2 + (-p0[a] + 3 * p1[a] - 3 * p2[a] + p3[a]) * t3);
+          out.push(q);
+        }
+      }
+      out.push(pts[pts.length - 1]); return out;
+    }
+    function celulasRabo(pts) {
+      var cel = {}, cv = curva(pts), N = cv.length;
+      cv.forEach(function (q, i) {
+        var f = i / (N - 1), r = 1.75 - .5 * f, x0 = q[0], y0 = q[1];   // proportions from her photo: ~30% of body height at the base, ~17% at the front
+        for (var yy = Math.floor(y0 - r - 2); yy <= Math.floor(y0 + r + 1); yy++)
+          for (var xx = Math.floor(x0 - r - 2); xx <= Math.floor(x0 + r + 1); xx++) {
+            var d = Math.hypot(xx + .5 - x0, yy + .5 - y0), key = xx + ',' + yy, cur = cel[key];
+            if (d <= r - 1.1) cel[key] = 'T';
+            else if (d <= r) { if (cur !== 'T') cel[key] = 't'; }
+            else if (d <= r + .8 && (xx * 7 + yy * 13) % 3 === 0) { if (!cur) cel[key] = 'u'; }   // loose fur
+          }
+      });
+      for (var k in cel) { var xy = k.split(','); if (cel[k] === 'T' && (xy[0] * 5 + xy[1] * 3) % 7 === 0) cel[k] = 't'; }   // lighter strands
+      return cel;
+    }
+    var rabos = {}; for (var q in pontos) rabos[q] = celulasRabo(pontos[q]);
+    function abanar() {                         // base -> up -> base -> down -> base
+      var seq = ['cima', 'base', 'baixo', 'base'], i = 0;
+      (function passo() { quadro = seq[i++]; desenhar(); if (i < seq.length) setTimeout(passo, 160); })();
+    }
+    function px(i, j, cor) { x.fillStyle = cor; x.fillRect(i, j, 1, 1); }
+    function desenhar() {
+      x.clearRect(0, 0, 34, 22);
+      base.forEach(function (lin, y) {
+        for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
+      });
+      if (acordada) {   // 2x2 blue eyes, pupil pointing where she looks
+        [[3, 6], [9, 6]].forEach(function (o) {
+          px(o[0], o[1], P.E); px(o[0] + 1, o[1], P.E); px(o[0], o[1] + 1, P.E); px(o[0] + 1, o[1] + 1, P.E);
+          px(o[0] + olhar.x, o[1] + olhar.y, P.k);
+        });
+      }
+      var rb = rabos[quadro];
+      for (var key in rb) { var xy = key.split(','); px(+xy[0], +xy[1], P[rb[key]]); }
+      if (tapa) {       // front paw raised
+        x.clearRect(0, 8, 3, 9);
+        x.fillStyle = P.W; x.fillRect(1, 11, 2, 3); x.fillRect(0, 9, 2, 3);
+        px(0, 8, P.n); px(1, 8, P.n); px(0, 12, P.w);
+      }
+    }
+    desenhar();
+
+    // browser tab icon with her face
+    try {
+      var ic = document.createElement('canvas'); ic.width = ic.height = 56;
+      var g = ic.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(c, 0, 0, 14, 14, 0, 0, 56, 56);
+      document.querySelector('link[rel="icon"]').href = ic.toDataURL('image/png');
+    } catch (e) {}
+
+    function flutuar(cls, html, esq, topo) {
+      var el = document.createElement('span'); el.className = 'flutua ' + cls; el.innerHTML = html;
+      el.style.left = esq + 'px'; el.style.top = topo + 'px';
+      el.style.setProperty('--dx', (Math.random() * 16 - 8).toFixed(0) + 'px');
+      btn.appendChild(el); setTimeout(function () { el.remove(); }, 2300);
+    }
+    var coracao = '<svg viewBox="0 0 6 5" width="12" height="10" shape-rendering="crispEdges"><path fill="#ff6f91" d="M1 0h1v1h1V0h1v1h1v2H4v1H3v1H2V4H1V3H0V1h1z"/></svg>';
+    function escala() { return btn.clientWidth / 34; }
+
+    // --- swat ---
+    var ultimoTapa = 0, emCarinho = false, fimCarinho;   // while being petted she does not swat (up to the limit)
+    // at most 3 pets in a row: the 4th becomes a swat; any swat resets the count (stored per device)
+    var LIMITE = 3, CH_SEG = 'firelink.carinhosSeguidos';
+    function seguidos(v) {
+      try { if (v === undefined) return +localStorage.getItem(CH_SEG) || 0; localStorage.setItem(CH_SEG, v); } catch (e) {}
+      return v || 0;
+    }
+    var falasLimite = ['Chega de carinho. *PÁ!*', 'Três carinhos é o limite. *PÁ!*', 'Mrrr... *PÁ!* Já deu.', '*PÁ!* ...pode recomeçar.'];
+    var falasTapa = ['*PÁ!*', '*tapa* ...depois ronrona, como se nada tivesse acontecido.', 'Hmpf.', '*PÁ PÁ!* Mrrau.'];
+    var falasRabo = ['*PÁ!* Aí não.', 'Hmpf! Perto do rabo, não.', '*olhar de reprovação* ... *PÁ!*', 'Mrrrrau! *PÁ!*'];
+    function darTapa(falar, falas) {
+      var agora = Date.now(); if (agora - ultimoTapa < 1400) return; ultimoTapa = agora;
+      acordar(true); tapa = true; desenhar(); seguidos(0);
+      btn.classList.remove('tremor'); void btn.offsetWidth; btn.classList.add('tremor');
+      flutuar('pa', 'PÁ!', -14, 0);
+      if (window.placarSoma) window.placarSoma('tapa');
+      if (falar && window.akaliFala) { var l = falas || falasTapa; window.akaliFala(l[Math.floor(Math.random() * l.length)]); }
+      setTimeout(function () { tapa = false; desenhar(); }, 380);
+    }
+
+    // --- wake / sleep ---
+    var timerDormir;
+    var ultimoMel = 0;
+    function acordar(silencio) {
+      clearTimeout(timerDormir);
+      if (!acordada) {
+        acordada = true; desenhar();
+        var agora = Date.now();
+        if (!silencio && !quieto && agora - ultimoMel > 8000) { ultimoMel = agora; flutuar('mel', 'Mel...', 22, -14); }
+      }
+    }
+    function dormirDepois(ms) { clearTimeout(timerDormir); timerDormir = setTimeout(function () { acordada = false; desenhar(); }, ms); }
+
+    // --- eyes following the cursor (or finger) ---
+    function seguir(cx, cy, toque) {   // toque = finger on a phone: only moves the eyes (the click decides pet/swat)
+      var r = c.getBoundingClientRect(), e = escala();
+      var ox = r.left + 7 * e, oy = r.top + 7 * e;          // between the eyes
+      var dx = cx - ox, dy = cy - oy, d = Math.hypot(dx, dy);
+      if (d > 320) { if (acordada && !timerDormir) dormirDepois(2500); return; }
+      acordar(); timerDormir = null;
+      var nx = dx > 6 ? 1 : 0, ny = dy > -10 ? 1 : 0;
+      if (nx !== olhar.x || ny !== olhar.y) { olhar = { x: nx, y: ny }; desenhar(); }
+      if (!toque && d < 18 * e && !quieto && !emCarinho) darTapa(false);   // cursor too close to her face (except while being petted)
+      dormirDepois(3500);
+    }
+    addEventListener('mousemove', function (ev) { seguir(ev.clientX, ev.clientY); });
+    addEventListener('touchstart', function (ev) { var t = ev.touches[0]; if (t) seguir(t.clientX, t.clientY, true); }, { passive: true });
+
+    // --- purring: vibration + "rrrr" + synthesized sound (only after a click, never on its own) ---
+    var audio = null, ronronando = null;
+    function somRonrono(seg) {
+      try {
+        audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+        if (audio.state === 'suspended') audio.resume();
+        var t0 = audio.currentTime, n = audio.sampleRate * seg, buf = audio.createBuffer(1, n, audio.sampleRate), d = buf.getChannelData(0), last = 0;
+        for (var i = 0; i < n; i++) { last = (last + (Math.random() * 2 - 1) * .08) * .985; d[i] = last * 4; }   // low rumble noise
+        var fonte = audio.createBufferSource(); fonte.buffer = buf;
+        var filtro = audio.createBiquadFilter(); filtro.type = 'lowpass'; filtro.frequency.value = 320;
+        var pulso = audio.createGain(); pulso.gain.value = .5;                       // ~26 pulses per second
+        var lfo = audio.createOscillator(); lfo.frequency.value = 26;
+        var lfoG = audio.createGain(); lfoG.gain.value = .5; lfo.connect(lfoG).connect(pulso.gain);
+        var env = audio.createGain(); env.gain.setValueAtTime(0, t0);                 // breathing: inhale/exhale
+        for (var b = 0; b < seg; b += 1.4) {
+          env.gain.linearRampToValueAtTime(.32, t0 + b + .25); env.gain.linearRampToValueAtTime(.12, t0 + b + .7);
+          env.gain.linearRampToValueAtTime(.24, t0 + b + .95); env.gain.linearRampToValueAtTime(.04, t0 + b + 1.35);
+        }
+        env.gain.linearRampToValueAtTime(0, t0 + seg);
+        fonte.connect(filtro).connect(pulso).connect(env).connect(audio.destination);
+        fonte.start(t0); lfo.start(t0); fonte.stop(t0 + seg); lfo.stop(t0 + seg);
+      } catch (e) {}
+    }
+    function ronronar() {
+      var seg = 2.8;
+      clearTimeout(ronronando); btn.classList.add('ronrona');
+      flutuar('rr', 'rrrrr...', 30, -10);
+      somRonrono(seg);
+      ronronando = setTimeout(function () { btn.classList.remove('ronrona'); }, seg * 1000);
+    }
+
+    // --- petting (click/tap on her): usually purrs, sometimes swats ---
+    var sons = ['Mel...', 'Mel...', 'Mel...', 'Prrrrr...', '*ronrona alto*', 'Mrrp?', '*ronrona baixinho*'];
+    btn.addEventListener('click', function (ev) {
+      // where was she petted? (sprite coordinates, 34x22; keyboard counts as the head)
+      var r = c.getBoundingClientRect(), e = r.width / 34;
+      var sx = ev.clientX ? (ev.clientX - r.left) / e : 5, sy = ev.clientY ? (ev.clientY - r.top) / e : 5;
+      var rabo = sx >= 24 || !!rabos.base[Math.floor(sx) + ',' + Math.floor(sy)];   // rear end or on the tail
+      if (rabo) { ultimoTapa = 0; darTapa(true, falasRabo); return; }
+      if (seguidos() >= LIMITE) { ultimoTapa = 0; darTapa(true, falasLimite); return; }
+      if (!emCarinho && Math.random() < .15) { ultimoTapa = 0; darTapa(true); return; }
+      seguidos(seguidos() + 1);
+      emCarinho = true; clearTimeout(fimCarinho);
+      fimCarinho = setTimeout(function () { emCarinho = false; }, 5000);
+      acordar(true);
+      for (var i = 0; i < 3; i++) (function (i) { setTimeout(function () { flutuar('coracao', coracao, 14 + i * 9, 4); }, i * 180); })(i);
+      if (window.akaliFala) window.akaliFala(sons[Math.floor(Math.random() * sons.length)]);
+      ronronar();
+      if (window.placarSoma) window.placarSoma('carinho');
+      dormirDepois(4200);
+    });
+
+    if (quieto) return;
+    // "Rrrrruuuuuuu!!!": asks for attention when nobody touches the page for a while
+    var parado, ultimoChamado = 0;
+    function agendarChamado() {
+      clearTimeout(parado);
+      parado = setTimeout(function () {
+        if (Date.now() - ultimoChamado < 120000 || document.hidden) return agendarChamado();
+        ultimoChamado = Date.now();
+        acordar(true); quadro = 'cima'; desenhar();
+        flutuar('chamado', 'Rrrrruuuuuuu!!!', -30, -18);
+        if (window.akaliFala) window.akaliFala('Rrrrruuuuuuu!!!');
+        setTimeout(function () { quadro = 'base'; desenhar(); }, 700);
+        dormirDepois(5000); agendarChamado();
+      }, 30000 + Math.random() * 20000);
+    }
+    ['mousemove', 'touchstart', 'keydown', 'click', 'scroll'].forEach(function (ev) { addEventListener(ev, agendarChamado, { passive: true }); });
+    agendarChamado();
+
+    // asleep: rising "z", tail wagging, occasional eye opening
+    setInterval(function () { if (!acordada) flutuar('z', 'z', 18, -6); }, 1900);
+    setInterval(function () { if (Math.random() < .5) abanar(); }, 3000);
+    setInterval(function () {
+      if (PERIODO === 'noite' || PERIODO === 'madrugada') return;   // at night she sleeps deeply
+      if (!acordada && Math.random() < .35) { acordada = true; desenhar(); setTimeout(function () { if (!timerDormir) { acordada = false; desenhar(); } }, 900); }
+    }, 7000);
+  })();
+
+  // ---------- disk bar (reads disco.json, written on the server every 5 min) ----------
+  (function () {
+    var caixa = document.getElementById('disco');
+    function gb(b) { var g = b / 1073741824; return (g < 10 ? g.toFixed(1) : Math.round(g)) + ' GB'; }
+    function atualizar() {
+      fetch('disco.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+        var util = d.usado + d.livre, pct = util ? d.usado / util * 100 : 0;
+        document.getElementById('disco-txt').textContent = gb(d.livre) + ' livres de ' + gb(d.total);
+        document.getElementById('disco-u').textContent = gb(d.usado);
+        document.getElementById('disco-l').textContent = gb(d.livre);
+        var barra = document.getElementById('disco-barra');
+        barra.setAttribute('aria-valuenow', pct.toFixed(0));
+        barra.title = pct.toFixed(1) + '% usado · atualizado ' + new Date(d.atualizado).toLocaleString('pt-BR');
+        barra.classList.toggle('alerta', pct >= 90);
+        caixa.hidden = false;
+        requestAnimationFrame(function () { document.getElementById('disco-usado').style.width = pct.toFixed(2) + '%'; });
+      }).catch(function () { caixa.hidden = true; });
+    }
+    atualizar(); setInterval(atualizar, 5 * 60 * 1000);
+  })();
+
+  // ---------- service status and uptime (/api/status) ----------
+  (function () {
+    function tempo(seg) {
+      var d = Math.floor(seg / 86400), h = Math.floor(seg % 86400 / 3600), m = Math.floor(seg % 3600 / 60);
+      if (d) return d + (d === 1 ? ' dia' : ' dias') + (h ? ' e ' + h + ' h' : '');
+      if (h) return h + ' h' + (m ? ' e ' + m + ' min' : '');
+      return m + ' min';
+    }
+    function luz(id, ok) {
+      var el = document.getElementById(id); if (!el) return;
+      el.className = 'luz ' + (ok ? 'ok' : 'fora'); el.title = ok ? 'no ar' : 'fora do ar';
+    }
+    function atualizar() {
+      fetch('api/status', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+        luz('luz-jellyfin', d.servicos.jellyfin); luz('luz-kavita', d.servicos.kavita);
+        document.getElementById('srv-ligado').innerHTML = '<span class="ic">🔥</span>A fogueira está acesa há ' + tempo(d.ligado_seg);
+      }).catch(function () {});
+    }
+    atualizar(); setInterval(atualizar, 60 * 1000);
+  })();
+
+  // ---------- disk health (smart.json, written as root every hour) ----------
+  (function () {
+    function quando(h) {
+      if (h < 1) return 'há menos de 1 h'; if (h < 24) return 'há ' + h + ' h';
+      var d = Math.round(h / 24); return d === 1 ? 'ontem' : 'há ' + d + ' dias';
+    }
+    fetch('smart.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      var ok = d.saudavel && !d.realocados && !d.pendentes && (!d.ultimo_teste || d.ultimo_teste.passou !== false);
+      var partes = [ok ? '<span class="bom">HD saudável ✓</span>' : '<span class="ruim">HD com sinais de desgaste ⚠</span>'];
+      if (d.temperatura) partes.push(d.temperatura + ' °C');
+      if (d.ultimo_teste) partes.push('último teste ' + quando(d.ultimo_teste.horas_atras) + (d.ultimo_teste.passou === false ? ' (falhou)' : ''));
+      var el = document.getElementById('srv-hd');
+      el.innerHTML = '<span class="ic">▣</span>' + partes.join(' · ');
+      el.title = 'setores realocados: ' + d.realocados + ' · pendentes: ' + d.pendentes + ' · ' + d.horas_ligado + ' h de uso';
+    }).catch(function () { document.getElementById('srv-hd').hidden = true; });
+  })();
+
+  // ---------- Akali's scoreboard (/api/placar, shared across devices) ----------
+  (function () {
+    var caixa = document.getElementById('placar'), corpo = document.getElementById('placar-linhas'), dados = null;
+    var cor = '<svg viewBox="0 0 6 5" width="14" height="12" shape-rendering="crispEdges"><path fill="#ff6f91" d="M1 0h1v1h1V0h1v1h1v2H4v1H3v1H2V4H1V3H0V1h1z"/></svg>';
+    var pata = '<svg viewBox="0 0 7 6" width="14" height="12" shape-rendering="crispEdges"><path fill="#e9a3a6" d="M0 1h1v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 1h1v1H6zM2 2h3v1h1v2H5v1H2V5H1V3h1z"/></svg>';
+    function desenhar() {
+      if (!dados) return;
+      var eu = window.quemEsta && window.quemEsta();
+      corpo.innerHTML = Object.keys(dados).map(function (n) {
+        var v = dados[n];
+        return '<tr class="' + (n === eu ? 'eu' : '') + '"><td class="n">' + n + '</td><td class="v">' + cor + v.carinho +
+               (v.carinho === 1 ? ' carinho' : ' carinhos') + ' &nbsp; ' + pata + v.tapa + (v.tapa === 1 ? ' tapa' : ' tapas') + '</td></tr>';
+      }).join('');
+      caixa.hidden = false;
+    }
+    function buscar() { fetch('api/placar', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) { dados = d; desenhar(); }).catch(function () {}); }
+    window.placarSoma = function (tipo) {
+      var eu = window.quemEsta && window.quemEsta(); if (!eu || !dados) return;
+      dados[eu][tipo]++; desenhar();                                   // update immediately
+      fetch('api/placar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quem: eu, tipo: tipo }) })
+        .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { if (d) { dados = d; desenhar(); } }).catch(function () {});
+    };
+    document.getElementById('trocar').addEventListener('click', function () { setTimeout(desenhar, 50); });
+    document.getElementById('opcoes').addEventListener('click', function () { setTimeout(desenhar, 50); });
+    buscar(); setInterval(buscar, 60 * 1000);
+  })();
+
+  // ---------- Christmas tree in December (twinkling lights) ----------
+  (function () {
+    if (!ESPECIAL.dezembro) return;
+    document.getElementById('arvore').hidden = false;
+    var c = document.getElementById('pinheiro'), x = c.getContext('2d');
+    var L = ["......y......", ".....yyy.....", "......g......", ".....ggg.....", "....ggggg....", ".....ggg.....",
+             "....ggggg....", "...ggggggg...", "....ggggg....", "...ggggggg...", "..ggggggggg..", "...ggggggg...",
+             "..ggggggggg..", ".ggggggggggg.", "ggggggggggggg", ".....mmm.....", ".....mmm.....", "....rrrrr....",
+             "....rrrrr....", "............."];
+    var C = { y: '#ffd36b', g: '#2f6b3a', m: '#5a3a22', r: '#8a2a20' };
+    var luzes = [[6,4],[4,6],[8,7],[5,9],[7,10],[3,12],[9,11],[6,13],[2,14],[10,14],[4,13],[8,13]];
+    var paleta = ['#ff5a5a', '#ffd36b', '#7fc8ff', '#9fdc7c'], t = 0;
+    function desenhar() {
+      x.clearRect(0, 0, 13, 20);
+      L.forEach(function (lin, yy) { for (var i = 0; i < 13; i++) { var k = lin[i]; if (C[k]) { x.fillStyle = C[k]; x.fillRect(i, yy, 1, 1); } } });
+      luzes.forEach(function (l, i) { if ((i + t) % 3) { x.fillStyle = paleta[(i + t) % 4]; x.fillRect(l[0], l[1], 1, 1); } });
+      t++;
+    }
+    desenhar(); if (!quieto) setInterval(desenhar, 600);
+  })();
+
+  // ---------- pixel confetti (birthdays, Christmas, New Year, Mother's Day) ----------
+  (function () {
+    var festa = ESPECIAL.aniversariantes.length || ESPECIAL.natal || ESPECIAL.anoNovo || ESPECIAL.maes;
+    if (!festa || quieto) return;
+    var c = document.getElementById('confete'), x = c.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = c.width = innerWidth * dpr, H = c.height = innerHeight * dpr, P = 4 * dpr, cores = ['#ff5a5a', '#ffd36b', '#7fc8ff', '#9fdc7c', '#ff9ad5', '#f4f1ea'];
+    var pecas = []; for (var i = 0; i < 120; i++) pecas.push({ x: Math.random() * W, y: -Math.random() * H, v: (1 + Math.random() * 2) * dpr, c: cores[i % cores.length], f: Math.random() * 6 });
+    var inicio = performance.now();
+    (function quadro(agora) {
+      x.clearRect(0, 0, W, H);
+      var fim = agora - inicio > 9000;
+      pecas.forEach(function (p) {
+        p.y += p.v; p.f += .1; p.x += Math.sin(p.f) * dpr;
+        if (p.y > H && !fim) { p.y = -P; p.x = Math.random() * W; }
+        x.fillStyle = p.c; x.fillRect(Math.round(p.x / P) * P, Math.round(p.y / P) * P, P, P * (Math.sin(p.f) > 0 ? 1 : .5));
+      });
+      if (!fim || pecas.some(function (p) { return p.y < H; })) requestAnimationFrame(quadro); else x.clearRect(0, 0, W, H);
+    })(inicio);
+  })();
+
+  // ---------- pixel-art bonfire (procedural fire) ----------
+  (function () {
+    var c = document.getElementById('fogo'), x = c.getContext('2d');
+    var W = 42, H = 44, FW = 26, FH = 34, ox = 8, oy = 2;   // fire area inside the canvas
+    var pal = ['#00000000','#3a0a04','#5a1206','#7a1a08','#9a240a','#b8320c','#d4420e',
+               '#e65412','#f06818','#f77d1e','#fb9226','#fda732','#feba44','#ffcc5a',
+               '#ffdb76','#ffe896','#fff2ba','#fffbe0'];
+    var MAX = pal.length - 1, fogo = new Array(FW * FH).fill(0);
+    var meio = (FW - 1) / 2;
+    function dist(col) { return Math.abs(col - meio) / meio; }   // 0 at the center, 1 at the edges
+    function base() {
+      for (var i = 0; i < FW; i++) {
+        var d = dist(i), v;
+        if (d < .28) v = MAX;
+        else if (d < .55) v = Math.random() < .7 ? MAX - 2 : Math.round(MAX * .5);
+        else if (d < .7) v = Math.random() < .35 ? Math.round(MAX * .6) : 0;
+        else v = 0;
+        fogo[(FH - 1) * FW + i] = v;
+      }
+    }
+    function passo() {
+      for (var y = 1; y < FH; y++) for (var xx = 0; xx < FW; xx++) {
+        var src = y * FW + xx, v = fogo[src];
+        if (v === 0) { fogo[src - FW] = 0; continue; }
+        var r = Math.floor(Math.random() * 3);
+        var dst = src - FW + (r - 1);
+        if (dst < 0 || dst >= FW * FH) continue;
+        var dcol = dist(dst % FW);
+        // cools faster at the sides (narrows the flame) and a bit at random (forms tongues)
+        var dec = (Math.random() < .5 ? 1 : 0) + (Math.random() < dcol * dcol * 1.6 ? 1 : 0);
+        fogo[dst] = Math.max(0, v - dec);
+      }
+    }
+    function px(cx, cy, cor) { x.fillStyle = cor; x.fillRect(cx, cy, 1, 1); }
+    function lenha() {
+      // two crossed logs, in pixels
+      var escura = '#3d2716', clara = '#704a2c', brasa = '#ff6a1c';
+      for (var i = 0; i < 26; i++) {
+        var a = 8 + i, b1 = 36 + Math.floor(i / 4), b2 = 42 - Math.floor(i / 4);
+        px(a, b1, clara); px(a, b1 + 1, escura);
+        px(a, b2 - 1, clara); px(a, b2, escura);
+      }
+      px(14, 38, brasa); px(26, 39, brasa); px(20, 40, brasa); px(30, 38, brasa);
+    }
+    function desenhar() {
+      x.clearRect(0, 0, W, H);
+      for (var y = 0; y < FH; y++) for (var xx = 0; xx < FW; xx++) {
+        var v = fogo[y * FW + xx];
+        if (v > 0) px(ox + xx, oy + y, pal[v]);
+      }
+      lenha();
+    }
+    base(); for (var i = 0; i < 60; i++) passo(); desenhar();
+    if (quieto) return;
+    setInterval(function () { base(); passo(); desenhar(); }, 90);
+  })();
+
+  // ---------- square embers rising ----------
+  (function () {
+    if (quieto) return;
+    var c = document.getElementById('brasas'), x = c.getContext('2d'), W, H, P, brasas = [];
+    var cores = ['#ffcc5a', '#fb9226', '#f06818', '#d4420e'];
+    function tamanho() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = c.width = innerWidth * dpr; H = c.height = innerHeight * dpr; P = 3 * dpr;
+    }
+    function nova(inicio) {
+      return { x: W / 2 + (Math.random() - .5) * W * .5, y: inicio ? Math.random() * H : H + P,
+               v: (Math.random() * .6 + .3) * P / 3, f: Math.random() * 6.28,
+               cor: cores[Math.floor(Math.random() * cores.length)], s: Math.random() < .25 ? 2 : 1 };
+    }
+    tamanho(); addEventListener('resize', tamanho);
+    for (var i = 0, n = innerWidth < 600 ? 22 : 36; i < n; i++) brasas.push(nova(true));
+    function quadro() {
+      x.clearRect(0, 0, W, H);
+      for (var i = 0; i < brasas.length; i++) {
+        var b = brasas[i];
+        b.y -= b.v; b.f += .03; b.x += Math.sin(b.f) * .4;
+        var vida = b.y / H;                     // fades as it rises
+        if (b.y < -P || Math.random() > .995 + vida * .005) { brasas[i] = nova(false); continue; }
+        x.globalAlpha = Math.min(1, vida * 1.4);
+        x.fillStyle = b.cor;
+        var sx = Math.round(b.x / P) * P, sy = Math.round(b.y / P) * P;   // snap to the pixel grid
+        x.fillRect(sx, sy, P * b.s, P * b.s);
+      }
+      x.globalAlpha = 1;
+      requestAnimationFrame(quadro);
+    }
+    requestAnimationFrame(quadro);
+  })();
+</script>
+</body>
+</html>

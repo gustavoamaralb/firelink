@@ -1,0 +1,14 @@
+[Unit]
+Description=Kavita (comics and books reader)
+After=network.target
+
+[Service]
+User=kavita
+Group=kavita
+WorkingDirectory=/opt/Kavita
+ExecStart=/opt/Kavita/Kavita
+Restart=always
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

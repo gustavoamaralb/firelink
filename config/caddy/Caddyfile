@@ -1,0 +1,15 @@
+# firelink: home page + /api/, IPv4 only, home network only
+{
+	auto_https off
+	admin off
+}
+:80 {
+	bind 0.0.0.0
+	root * /srv/www/firelink
+	@fora not remote_ip 192.168.15.0/24 127.0.0.1/8
+	route {
+		respond @fora 403
+		reverse_proxy /api/* 127.0.0.1:8091
+		file_server
+	}
+}
