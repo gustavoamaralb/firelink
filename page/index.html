@@ -623,6 +623,11 @@
           var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Abrir a carta 💌';
           b.addEventListener('click', function () { if (window.abrirCarta) window.abrirCarta(nome, CFG.mothersDayLetter[nome]); });
           opcoes.appendChild(b); opcoes.hidden = false;
+        } else if (ESPECIAL.cacaOvos && window.cacaCompleta && window.cacaCompleta()) {   // offer to play the egg hunt again
+          opcoes.innerHTML = ''; opcoes.classList.add('carta-botao');
+          var r = document.createElement('button'); r.type = 'button'; r.textContent = 'Caçar os ovos de novo 🥚';
+          r.addEventListener('click', function () { if (window.reiniciarCaca) window.reiniciarCaca(); });
+          opcoes.appendChild(r); opcoes.hidden = false;
         }
       };
       escrever(falaGuardia, fimGuardia);
@@ -1100,7 +1105,13 @@
     var TOTAL = 5;
     window.cacaCompleta = function () { return achados.length >= TOTAL; };
     var placar = document.getElementById('ovos-placar');
-    function atualizarPlacar() { placar.textContent = '🥚 ' + achados.length + '/' + TOTAL + (SIMULANDO ? '  ↺' : ''); }
+    function podeReiniciar() { return SIMULANDO || achados.length >= TOTAL; }
+    function atualizarPlacar() {
+      placar.textContent = '🥚 ' + achados.length + '/' + TOTAL + (podeReiniciar() ? '  ↺' : '');
+      placar.classList.toggle('reinicia', podeReiniciar());
+      placar.title = podeReiniciar() ? 'tocar para recomeçar a caça' : '';
+    }
+    window.reiniciarCaca = function () { try { localStorage.removeItem(CHAVE); } catch (e) {} location.reload(); };
     function ovo(id, pai, css) {
       if (achados.indexOf(id) >= 0) return null;
       var b = document.createElement('button'); b.type = 'button'; b.className = 'ovo'; b.setAttribute('aria-label', 'Ovo de Páscoa escondido');
@@ -1125,10 +1136,7 @@
     }
     if (ESPECIAL.cacaOvos) {
       placar.hidden = false; atualizarPlacar();
-      if (SIMULANDO) {                                     // preview only: tap the counter to restart the hunt
-        placar.classList.add('reinicia'); placar.title = 'tocar para recomeçar a caça';
-        placar.addEventListener('click', function () { try { localStorage.removeItem(CHAVE); } catch (e) {} location.reload(); });
-      }
+      placar.addEventListener('click', function () { if (podeReiniciar()) window.reiniciarCaca(); });   // restart: once complete (or anytime in preview)
       ovo(0, document.querySelector('.fogueira'), { left: '6px', bottom: '8px' });              // behind the logs
       ovo(1, cena, { right: '-16px', bottom: '-4px' });                                         // by Akali's tail
       ovo(2, document.getElementById('dialogo'), { left: '-12px', bottom: '-18px' });          // peeking under the dialogue box

@@ -67,7 +67,8 @@ A single HTML file with no dependencies besides two Google Fonts.
   eyes), bunny ears on Akali and seasonal lines, plus a relaxed egg hunt over the three
   days: four eggs hidden around the page and a sparkling golden one the bunny drops in
   front of the keeper, with a counter and a celebration when all five are found
-  (progress kept per device and per year; in preview mode, tapping the counter restarts).
+  (progress kept per device and per year). Once all five are found, the keeper offers to
+  play again, and the counter becomes a restart button (in preview mode it always is).
 - **Mother's Day** has its own, gentler look: falling petals, flowers sprouting along the
   ground of the scene, a rose-tinted flame, a bouquet in the keeper's hands, a flower by
   Akali's ear, and an optional letter (from `config.js`) that the keeper hands over and
