@@ -39,7 +39,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 page/         home page (a single HTML file) and the household config example
 api/          firelink-api, its systemd unit (template) and the install script
 scripts/      firelink-disk.sh (disk usage) and firelink-smart (disk health)
-config/       samba, caddy, nftables, systemd, cron, apt and disks
+config/       samba, caddy, nftables, ssh, systemd, cron, apt and disks
 assets/       README banner (rendered from the home page itself)
 ```
 
@@ -93,9 +93,12 @@ affiliated with the game or its creators.
 - **Firewall on the server itself.** The laptop gets a public IPv6 address; with no NAT
   on IPv6, protection would otherwise depend on the router. `nftables` accepts new
   connections only from `192.168.15.0/24` and `fe80::/10` and rejects everything else.
+- **SSH accepts keys only** (`config/ssh/10-key-only.conf`): password login is disabled;
+  a local console login still works if the key is lost.
 - **Caddy's network filter lives inside a `route` block.** In Caddy's default directive
   order `handle` runs before `respond`, so a `reverse_proxy` inside `handle` would bypass
-  the filter for `/api/`. Inside `route`, the written order applies.
+  the filter for `/api/`. Inside `route`, the written order applies. The filter accepts
+  the same sources as the firewall (home IPv4 range, loopback and IPv6 link-local).
 - **Disk with `apm = 254`.** The drive was parking its heads very often (325 thousand load
   cycles recorded); on an always-on server that accelerates wear.
 - **Closing the lid does not suspend** (`logind`), and the sleep targets are masked.
