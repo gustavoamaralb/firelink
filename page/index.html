@@ -462,7 +462,7 @@
   }
   var PASCOA = diasAtePascoa();
   var ESPECIAL = {
-    halloween: MES === 9 && DIA >= 25,     // Oct 25-31: Halloween decorations
+    halloween: MES === 9,                  // all of October: Halloween decorations
     dia31: MES === 9 && DIA === 31,        // Oct 31: Halloween + Saci Day (trick-or-treat, the Saci)
     pascoa: !!PASCOA,                     // Good Friday to Easter Sunday: decorations
     domingoPascoa: !!PASCOA && PASCOA.dias === 0,   // Easter Sunday
@@ -1220,8 +1220,8 @@
     });
   })();
 
-  // ---------- Halloween (Oct 25-31): ghostly flame, pumpkin, bats, fog, peeking ghost, witch hat;
-  //            the Saci hops by all week (more often on Oct 31, Saci Day); trick-or-treat at the pumpkin on Oct 31 ----------
+  // ---------- Halloween (all of October): ghostly flame, pumpkin, bats, fog, peeking ghost, witch hat;
+  //            the Saci hops by all month (more often on Oct 31, Saci Day); trick-or-treat at the pumpkin on Oct 31 ----------
   (function () {
     if (!ESPECIAL.halloween) return;
     document.body.classList.add('halloween');
@@ -1323,7 +1323,7 @@
     });
 
     // the Saci (Oct 31 is Saci Day) hops across on one leg, puffing his pipe, and vanishes in a whirlwind:
-    // now and then all week, more often on the 31st
+    // now and then all month, more often on the 31st
     var cs = document.getElementById('saci'), xs = cs.getContext('2d');
     function saci() {
       cs.hidden = false; var fim = cena.scrollWidth + 20, xpos = fim, quadro = 0, fumaca = [], girando = 0, pararEm = fim * (.08 + Math.random() * .2);
