@@ -102,3 +102,11 @@ affiliated with the game or its creators.
   outside brackets (`Series Vol. 1`), otherwise the file is treated as a one-off special.
 - **Household data stays out of Git:** names, birthdays and Mother's Day live in
   `config.js` on the server only. The repository ships a fictional example.
+
+## Copyright
+
+© 2026 Gustavo Brandão Amaral. All rights reserved.
+
+No license is granted for this repository, including the code and the pixel art
+(Akali and the Keeper of the Flame). You are welcome to read it; reuse or
+redistribution requires permission.
