@@ -1,5 +1,5 @@
 [Unit]
-Description=firelink home page API (status and Akali scoreboard)
+Description=firelink home page API (status, Akali scoreboard and household chat)
 After=network.target
 
 [Service]

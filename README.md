@@ -28,7 +28,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 | Jellyfin | movies, animations, series and recorded classes, with VA-API (i965) hardware acceleration for H.264, MPEG-2 and VC-1 | `:8096` |
 | Kavita | comics (CBZ/CBR/PDF) and books (EPUB/PDF) with per-person reading progress | `:5000` |
 | Caddy | home page and `/api/` proxy | `:80` |
-| firelink-api | service status and Akali's scoreboard (Python, standard library only) | `127.0.0.1:8091` |
+| firelink-api | service status, Akali's scoreboard and the household chat (Python, standard library only) | `127.0.0.1:8091` |
 | nftables | accepts new connections from the home network only | — |
 | smartd + firelink-smart | disk self-tests (short daily, long weekly) and a summary for the home page | — |
 | unattended-upgrades | automatic security updates | — |
@@ -59,6 +59,11 @@ A single HTML file with no dependencies besides two Google Fonts.
 - **Server panel:** status lights for Jellyfin and Kavita, uptime, a disk usage bar, disk
   health (SMART, temperature, last self-test) and Akali's scoreboard of pets and swats per
   person, shared across devices.
+- **Household chat:** a side panel (full screen on phones) for messages between the
+  household's computers, kept on the server (`/api/chat`, a JSON Lines file written only
+  when someone sends or reads). Clickable links, a copy button on every message (works over
+  plain HTTP), "seen by", and new-message alerts in the tab title, the favicon and the
+  keeper's dialogue box, while Akali turns her eyes to the button.
 - **Day and night:** a starry sky at night, warm light in the morning.
 - **Special dates:** on birthdays, pixel balloons drifting up the page, confetti and a cake whose
   candle can be blown out (tap it to make a wish); a pet's "home birthday" also puts a party

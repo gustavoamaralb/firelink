@@ -5,11 +5,17 @@ GET  /api/status   -> services up/down and uptime (checked on each request)
 GET  /api/sistema  -> Debian release, kernel and versions of the main services (cached for 1 h)
 GET  /api/placar   -> Akali's pets ("carinho") and swats ("tapa") per person
 POST /api/placar   -> {"quem": "<name>", "tipo": "carinho" | "tapa"} adds 1
+GET  /api/chat?desde=<id> -> household chat messages after that id (the last 200) and who has read up to where
+POST /api/chat     -> {"quem": "<name>", "texto": "..."} sends a message
+POST /api/chat/lido -> {"quem": "<name>", "id": <id>} marks messages as read up to that id
+
+Messages are appended to a JSON Lines file only when someone sends one (polling never writes to the disk).
 
 Valid names come from /srv/www/firelink/config.js (the same file the page uses).
 Standard library only.
 """
 import json, os, platform, re, sqlite3, subprocess, threading, time, urllib.request
+from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 CONFIG = "/srv/www/firelink/config.js"
@@ -47,6 +53,64 @@ def gravar_placar(d):
     with open(tmp, "w") as f:
         json.dump(d, f)
     os.replace(tmp, DADOS)
+
+
+MENSAGENS = os.path.expanduser("~/.local/share/firelink/chat.jsonl")
+LIDOS = os.path.expanduser("~/.local/share/firelink/chat-lidos.json")
+MAX_TEXTO = 2000
+CONTROLE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
+memoria = {"mensagens": None, "lidos": None}     # loaded on first use, then kept in memory
+
+
+def mensagens():
+    if memoria["mensagens"] is None:
+        lista = []
+        try:
+            with open(MENSAGENS, encoding="utf-8") as f:
+                for linha in f:
+                    try:
+                        r = json.loads(linha)
+                    except ValueError:
+                        continue
+                    if isinstance(r, dict) and isinstance(r.get("id"), int):
+                        lista.append(r)
+        except OSError:
+            pass
+        memoria["mensagens"] = lista
+    return memoria["mensagens"]
+
+
+def lidos():
+    if memoria["lidos"] is None:
+        try:
+            with open(LIDOS) as f:
+                d = json.load(f)
+        except (OSError, ValueError):
+            d = {}
+        memoria["lidos"] = {k: v for k, v in d.items() if isinstance(v, int)} if isinstance(d, dict) else {}
+    return memoria["lidos"]
+
+
+def nova_mensagem(quem, texto):
+    lista = mensagens()
+    r = {"id": (lista[-1]["id"] + 1) if lista else 1, "quem": quem, "texto": texto, "t": int(time.time())}
+    os.makedirs(os.path.dirname(MENSAGENS), exist_ok=True)
+    with open(MENSAGENS, "a", encoding="utf-8") as f:
+        f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    lista.append(r)
+    return r
+
+
+def marcar_lido(quem, ate):
+    d = lidos()
+    if ate <= d.get(quem, 0):
+        return
+    d[quem] = ate
+    os.makedirs(os.path.dirname(LIDOS), exist_ok=True)
+    tmp = LIDOS + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(d, f)
+    os.replace(tmp, LIDOS)
 
 
 def no_ar(url):
@@ -143,36 +207,75 @@ class Api(BaseHTTPRequestHandler):
         self.wfile.write(corpo)
 
     def do_GET(self):
-        if self.path == "/api/status":
+        url = urlsplit(self.path)
+        if url.path == "/api/status":
             return self._json(200, status())
-        if self.path == "/api/sistema":
+        if url.path == "/api/sistema":
             return self._json(200, sistema_em_cache())
-        if self.path == "/api/placar":
+        if url.path == "/api/placar":
             with trava:
                 return self._json(200, ler_placar())
+        if url.path == "/api/chat":
+            try:
+                desde = int(parse_qs(url.query).get("desde", ["0"])[0])
+            except ValueError:
+                desde = 0
+            nomes = pessoas()
+            with trava:
+                novos = [r for r in mensagens() if r["id"] > desde][-200:]
+                vistos = {k: v for k, v in lidos().items() if k in nomes}
+            return self._json(200, {"mensagens": novos, "lidos": vistos})
         self._json(404, {"error": "not found"})
 
+    def _pedido(self, limite):
+        try:
+            n = min(int(self.headers.get("Content-Length", 0)), limite)
+            pedido = json.loads(self.rfile.read(n) or b"{}")
+        except ValueError:
+            return None
+        return pedido if isinstance(pedido, dict) else None
+
     def do_POST(self):
-        if self.path != "/api/placar":
+        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2}
+        if self.path not in rotas:
             return self._json(404, {"error": "not found"})
         ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
         agora = time.monotonic()
-        if agora - ultimo_post.get(ip, 0) < 0.4:
+        if agora - ultimo_post.get((ip, self.path), 0) < rotas[self.path]:
             return self._json(429, {"error": "too fast"})
-        ultimo_post[ip] = agora
-        try:
-            n = min(int(self.headers.get("Content-Length", 0)), 200)
-            pedido = json.loads(self.rfile.read(n) or b"{}")
-            quem, tipo = pedido.get("quem"), pedido.get("tipo")
-        except (ValueError, AttributeError):
+        ultimo_post[(ip, self.path)] = agora
+        pedido = self._pedido(16384 if self.path == "/api/chat" else 200)
+        if pedido is None or pedido.get("quem") not in pessoas():
             return self._json(400, {"error": "invalid request"})
-        if quem not in pessoas() or tipo not in TIPOS:
+        quem = pedido["quem"]
+
+        if self.path == "/api/placar":
+            tipo = pedido.get("tipo")
+            if tipo not in TIPOS:
+                return self._json(400, {"error": "invalid request"})
+            with trava:
+                d = ler_placar()
+                d[quem][tipo] += 1
+                gravar_placar(d)
+                return self._json(200, d)
+
+        if self.path == "/api/chat":
+            texto = pedido.get("texto")
+            if not isinstance(texto, str):
+                return self._json(400, {"error": "invalid request"})
+            texto = CONTROLE.sub("", texto.replace("\r\n", "\n")).strip()
+            if not texto or len(texto) > MAX_TEXTO:
+                return self._json(400, {"error": "invalid request"})
+            with trava:
+                return self._json(200, {"mensagem": nova_mensagem(quem, texto)})
+
+        ate = pedido.get("id")
+        if not isinstance(ate, int) or isinstance(ate, bool):
             return self._json(400, {"error": "invalid request"})
         with trava:
-            d = ler_placar()
-            d[quem][tipo] += 1
-            gravar_placar(d)
-            return self._json(200, d)
+            lista = mensagens()
+            marcar_lido(quem, min(ate, lista[-1]["id"] if lista else 0))
+            return self._json(200, {"lidos": lidos()})
 
     def log_message(self, *a):
         pass
