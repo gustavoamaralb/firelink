@@ -173,6 +173,27 @@
   .disco-legenda { display: flex; justify-content: space-between; margin-top: 10px; font-size: 19px; color: var(--muted); }
   .disco-legenda .q { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: 0; }
   .usado-q { background: #f06818; } .livre-q { background: #0e0b08; box-shadow: 0 0 0 2px var(--gold-dark); }
+  /* --- live system monitor --- */
+  .mon-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: var(--muted); font-family: "VT323", monospace; }
+  .mon-topo b { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; letter-spacing: .1em; color: var(--gold-dark); }
+  .mon-resumo { flex: 1; font-size: 20px; }
+  .mon-resumo .alto { color: #ff7a5c; }
+  .mon-seta { color: var(--gold-dark); font-size: 18px; }
+  .mon-topo:hover b, .mon-topo:focus-visible b, .mon-topo:hover .mon-seta, .mon-topo:focus-visible .mon-seta { color: var(--gold); }
+  .mon-topo:focus-visible { outline: none; }
+  .mon-topo[aria-expanded="true"] .mon-seta { transform: rotate(180deg); }
+  .mon-corpo { display: grid; gap: 22px; margin-top: 16px; }
+  .mon-graf { display: block; width: 100%; height: 96px; background: #0e0b08; image-rendering: pixelated; image-rendering: crisp-edges;
+              box-shadow: 0 -3px 0 0 var(--gold-dark), 0 3px 0 0 var(--gold-dark), -3px 0 0 0 var(--gold-dark), 3px 0 0 0 var(--gold-dark), 0 6px 0 0 #000; }
+  .nucleos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 24px; margin-top: 14px; font-size: 18px; color: var(--muted); }
+  .nucleo { display: grid; grid-template-columns: 1.1em 1fr 3em; align-items: center; gap: 8px; }
+  .nucleo i { display: block; height: 8px; background: #0e0b08; box-shadow: 0 0 0 2px var(--gold-dark); position: relative; }
+  .nucleo i::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: var(--v, 0%); background: #f06818; }
+  .nucleo.alto i::after { background: #e0402a; }
+  .nucleo span { text-align: right; }
+  .mon-nota { margin-top: 8px; font-size: 18px; color: var(--muted); }
+  .rx-q { background: #e0b45c; } .tx-q { background: #ff5a1a; }
+  .barra.morna { --cor: #f0a018; --cor2: #c47a0e; }
 
   /* --- status lights --- */
   .luz { display: inline-block; width: 8px; height: 8px; margin: 0 10px 2px 0; vertical-align: middle; background: #5a5046; box-shadow: 0 0 0 2px #000; }
@@ -471,10 +492,36 @@
     </a>
   </nav>
 
-  <section class="disco" id="disco" aria-label="Espaço em disco do servidor">
-    <div class="disco-topo"><b>DISCO</b><span id="disco-txt">…</span></div>
-    <div class="barra" role="meter" aria-valuemin="0" aria-valuemax="100" id="disco-barra"><div class="usado" id="disco-usado"></div></div>
-    <div class="disco-legenda"><span><i class="q usado-q"></i>usado <span id="disco-u">…</span></span><span><i class="q livre-q"></i>livre <span id="disco-l">…</span></span></div>
+  <section class="disco monitor" id="monitor" aria-label="Monitor do servidor">
+    <button type="button" class="mon-topo" id="mon-topo" aria-expanded="false" aria-controls="mon-corpo">
+      <b>MONITOR</b><span class="mon-resumo" id="mon-resumo">…</span><span class="mon-seta" aria-hidden="true">▾</span>
+    </button>
+    <div class="mon-corpo" id="mon-corpo" hidden>
+      <div class="mon-item">
+        <div class="disco-topo"><b>CPU</b><span id="mon-cpu">…</span></div>
+        <canvas class="mon-graf" id="mon-cpu-graf" width="60" height="24" aria-hidden="true"></canvas>
+        <div class="nucleos" id="mon-nucleos"></div>
+      </div>
+      <div class="mon-item">
+        <div class="disco-topo"><b>MEMÓRIA</b><span id="mon-ram">…</span></div>
+        <div class="barra" role="meter" aria-label="Memória em uso" aria-valuemin="0" aria-valuemax="100" id="mon-ram-barra"><div class="usado" id="mon-ram-usado"></div></div>
+        <div class="mon-nota" id="mon-swap" hidden></div>
+      </div>
+      <div class="mon-item">
+        <div class="disco-topo"><b>REDE</b><span id="mon-rede">…</span></div>
+        <canvas class="mon-graf" id="mon-rede-graf" width="60" height="24" aria-hidden="true"></canvas>
+        <div class="disco-legenda"><span><i class="q rx-q"></i>recebendo</span><span><i class="q tx-q"></i>enviando</span><span id="mon-rede-escala"></span></div>
+      </div>
+      <div class="mon-item" id="mon-temp-item">
+        <div class="disco-topo"><b>TEMPERATURA</b><span id="mon-temp">…</span></div>
+        <div class="barra" role="meter" aria-label="Temperatura da CPU" aria-valuemin="30" aria-valuemax="100" id="mon-temp-barra"><div class="usado" id="mon-temp-usado"></div></div>
+      </div>
+      <div class="mon-item" id="disco">
+        <div class="disco-topo"><b>DISCO</b><span id="disco-txt">…</span></div>
+        <div class="barra" role="meter" aria-label="Espaço em disco usado" aria-valuemin="0" aria-valuemax="100" id="disco-barra"><div class="usado" id="disco-usado"></div></div>
+        <div class="disco-legenda"><span><i class="q usado-q"></i>usado <span id="disco-u">…</span></span><span><i class="q livre-q"></i>livre <span id="disco-l">…</span></span></div>
+      </div>
+    </div>
     <ul class="servidor">
       <li id="srv-ligado"><span class="ic">🔥</span>…</li>
       <li id="srv-hd"><span class="ic">▣</span>…</li>
@@ -1218,25 +1265,134 @@
     }, 7000);
   })();
 
-  // ---------- disk bar (reads disco.json, written on the server every 5 min) ----------
+  // ---------- live system monitor (/api/monitor reads /proc and /sys on each request; nothing is stored) ----------
+  // a one-line summary every 10 s; opened, it refreshes every second while it is on screen, like the Linux system monitor
   (function () {
-    var caixa = document.getElementById('disco');
-    function gb(b) { var g = b / 1073741824; return (g < 10 ? g.toFixed(1) : Math.round(g)) + ' GB'; }
-    function atualizar() {
-      fetch('disco.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
-        var util = d.usado + d.livre, pct = util ? d.usado / util * 100 : 0;
-        document.getElementById('disco-txt').textContent = gb(d.livre) + ' livres de ' + gb(d.total);
-        document.getElementById('disco-u').textContent = gb(d.usado);
-        document.getElementById('disco-l').textContent = gb(d.livre);
-        var barra = document.getElementById('disco-barra');
-        barra.setAttribute('aria-valuenow', pct.toFixed(0));
-        barra.title = pct.toFixed(1) + '% usado · atualizado ' + new Date(d.atualizado).toLocaleString('pt-BR');
-        barra.classList.toggle('alerta', pct >= 90);
-        caixa.hidden = false;
-        requestAnimationFrame(function () { document.getElementById('disco-usado').style.width = pct.toFixed(2) + '%'; });
-      }).catch(function () { caixa.hidden = true; });
+    var caixa = document.getElementById('monitor'), topo = document.getElementById('mon-topo'), corpo = document.getElementById('mon-corpo');
+    var resumo = document.getElementById('mon-resumo');
+    var JANELA = 60;                                       // seconds shown in the graphs
+    var amostras = [];                                     // {t, cpu, rx, tx}, only in this page
+    var aberto = false, naTela = true, timer = null, buscando = false;
+    try { aberto = localStorage.getItem('firelink.monitorAberto') === '1'; } catch (e) {}
+
+    function gb(b) { var g = b / 1073741824; return (g < 10 ? g.toFixed(1) : Math.round(g)).toString().replace('.', ',') + ' GB'; }
+    function vel(b) {
+      if (b < 1024) return Math.round(b) + ' B/s';
+      if (b < 1048576) return Math.round(b / 1024) + ' KB/s';
+      return (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace('.', ',') + ' MB/s';
     }
-    atualizar(); setInterval(atualizar, 5 * 60 * 1000);
+    function pct(n) { return Math.round(n) + '%'; }
+    function barra(id, p, alerta, morna) {
+      var b = document.getElementById(id);
+      b.setAttribute('aria-valuenow', Math.round(p));
+      b.classList.toggle('alerta', !!alerta); b.classList.toggle('morna', !alerta && !!morna);
+      document.getElementById(id.replace('-barra', '-usado')).style.width = Math.max(0, Math.min(100, p)).toFixed(1) + '%';
+    }
+
+    // pixel graph: one column per second, newest on the right
+    function grafico(id, series, maximo) {
+      var c = document.getElementById(id), x = c.getContext('2d'), W = c.width, H = c.height, agora = Date.now();
+      x.clearRect(0, 0, W, H);
+      x.fillStyle = '#211910';
+      [.25, .5, .75].forEach(function (f) { for (var i = 0; i < W; i += 2) x.fillRect(i, Math.round(H * f), 1, 1); });
+      var cols = [];
+      amostras.forEach(function (a) { var col = W - 1 - Math.round((agora - a.t) / 1000); if (col >= 0) cols[col] = a; });
+      for (var col = 1; col < W - 1; col++) if (!cols[col] && cols[col - 1] && cols[col + 1]) cols[col] = cols[col - 1];   // fill a skipped second
+      series.forEach(function (s) {
+        for (var col = 0; col < W; col++) {
+          var a = cols[col]; if (!a) continue;
+          var h = Math.round(Math.min(1, a[s.campo] / maximo) * H); if (a[s.campo] > 0 && h < 1) h = 1;
+          if (!h) continue;
+          var forte = s.campo === 'cpu' && a.cpu >= 90;
+          if (s.linha) { x.fillStyle = s.cor; x.fillRect(col, H - h, 1, 1); continue; }
+          x.fillStyle = forte ? '#a8241a' : s.fundo; x.fillRect(col, H - h, 1, h);
+          x.fillStyle = forte ? '#e0402a' : s.cor; x.fillRect(col, H - h, 1, 1);     // brighter top pixel
+        }
+      });
+    }
+    function escalaRede() {                                // like the system monitor: fits the busiest second in view
+      var m = 65536;
+      amostras.forEach(function (a) { m = Math.max(m, a.rx, a.tx); });
+      var degraus = [65536, 262144, 1048576, 4194304, 10485760, 26214400, 52428800, 125829120];
+      for (var i = 0; i < degraus.length; i++) if (m <= degraus[i]) return degraus[i];
+      return m;
+    }
+
+    function mostrar(d) {
+      var ram = d.mem.total ? d.mem.usado / d.mem.total * 100 : 0;
+      var hd = d.disco.usado + d.disco.livre ? d.disco.usado / (d.disco.usado + d.disco.livre) * 100 : 0;
+      var quente = d.temp != null && d.temp >= 85;
+      resumo.innerHTML = '';
+      [['CPU ' + pct(d.cpu), d.cpu >= 90], ['RAM ' + pct(ram), ram >= 90], d.temp != null ? [Math.round(d.temp) + ' °C', quente] : null, ['HD ' + pct(hd), hd >= 90]]
+        .filter(Boolean).forEach(function (p, i) {
+          if (i) resumo.appendChild(document.createTextNode(' · '));
+          var e = document.createElement('span'); e.textContent = p[0]; if (p[1]) e.className = 'alto'; resumo.appendChild(e);
+        });
+
+      // disk: its bar lives inside the monitor; the summary line carries the percentage
+      document.getElementById('disco-txt').textContent = gb(d.disco.livre) + ' livres de ' + gb(d.disco.total);
+      document.getElementById('disco-u').textContent = gb(d.disco.usado);
+      document.getElementById('disco-l').textContent = gb(d.disco.livre);
+      barra('disco-barra', hd, hd >= 90);
+      if (!aberto) return;
+
+      document.getElementById('mon-cpu').textContent = pct(d.cpu) + ' · ' + d.nucleos.length + ' núcleos';
+      var nuc = document.getElementById('mon-nucleos');
+      if (nuc.children.length !== d.nucleos.length) {
+        nuc.innerHTML = '';
+        d.nucleos.forEach(function (v, i) { var e = document.createElement('div'); e.className = 'nucleo'; e.innerHTML = (i + 1) + ' <i></i><span></span>'; nuc.appendChild(e); });
+      }
+      d.nucleos.forEach(function (v, i) {
+        var e = nuc.children[i]; e.classList.toggle('alto', v >= 90);
+        e.querySelector('i').style.setProperty('--v', v.toFixed(0) + '%'); e.querySelector('span').textContent = pct(v);
+      });
+      grafico('mon-cpu-graf', [{ campo: 'cpu', cor: '#ffcc5a', fundo: '#d4420e' }], 100);
+
+      document.getElementById('mon-ram').textContent = gb(d.mem.usado) + ' de ' + gb(d.mem.total) + ' · ' + pct(ram);
+      barra('mon-ram-barra', ram, ram >= 90);
+      var sw = document.getElementById('mon-swap');
+      sw.hidden = d.mem.swap_usado < 33554432;             // shown only when more than 32 MB of swap is in use
+      sw.textContent = 'swap: ' + gb(d.mem.swap_usado) + ' em uso de ' + gb(d.mem.swap_total);
+
+      document.getElementById('mon-rede').textContent = '↓ ' + vel(d.rede.rx) + ' · ↑ ' + vel(d.rede.tx);
+      var esc = escalaRede();
+      document.getElementById('mon-rede-escala').textContent = 'escala ' + vel(esc);
+      grafico('mon-rede-graf', [{ campo: 'rx', cor: '#ffe896', fundo: '#7a5a2a' }, { campo: 'tx', cor: '#ff5a1a', linha: true }], esc);
+
+      document.getElementById('mon-temp-item').hidden = d.temp == null;
+      if (d.temp != null) {
+        document.getElementById('mon-temp').textContent = d.temp.toFixed(0) + ' °C' + (quente ? ' · quente!' : '');
+        barra('mon-temp-barra', (d.temp - 30) / 70 * 100, quente, d.temp >= 75);
+      }
+    }
+
+    function buscar() {
+      if (buscando) return;
+      buscando = true; clearTimeout(timer);
+      fetch('api/monitor', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+        amostras.push({ t: Date.now(), cpu: d.cpu, rx: d.rede.rx, tx: d.rede.tx });
+        while (amostras.length && Date.now() - amostras[0].t > (JANELA + 2) * 1000) amostras.shift();
+        caixa.hidden = false; mostrar(d);
+      }).catch(function () { resumo.textContent = 'sem resposta do servidor'; }).then(function () { buscando = false; agendar(); });
+    }
+    function agendar() {
+      clearTimeout(timer);
+      if (document.hidden) return;                          // resumes when the tab comes back
+      timer = setTimeout(buscar, aberto && naTela ? 1000 : 10000);
+    }
+    function abrirFechar(v) {
+      aberto = v; corpo.hidden = !v; topo.setAttribute('aria-expanded', v ? 'true' : 'false');
+      try { localStorage.setItem('firelink.monitorAberto', v ? '1' : '0'); } catch (e) {}
+      if (v) { amostras = amostras.slice(-1); buscar(); } else agendar();
+    }
+    topo.addEventListener('click', function () { abrirFechar(!aberto); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) buscar(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) {
+      var antes = naTela; naTela = es[0].isIntersecting;
+      if (naTela && !antes && aberto) buscar();
+    }).observe(caixa);
+    corpo.hidden = !aberto; topo.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+    buscar();
   })();
 
   // ---------- service status and uptime (/api/status) ----------

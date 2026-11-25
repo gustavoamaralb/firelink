@@ -3,6 +3,8 @@
 
 GET  /api/status   -> services up/down and uptime (checked on each request)
 GET  /api/sistema  -> Debian release, kernel and versions of the main services (cached for 1 h)
+GET  /api/monitor  -> live system monitor: CPU (total and per core), memory, swap, network speed,
+                      CPU temperature and disk space (read from /proc and /sys on each request, nothing stored)
 GET  /api/placar   -> Akali's pets ("carinho") and swats ("tapa") per person
 POST /api/placar   -> {"quem": "<name>", "tipo": "carinho" | "tapa"} adds 1
 GET  /api/chat?desde=<id> -> household chat messages after that id (the last 200) and who has read up to where
@@ -41,6 +43,7 @@ TIPOS = ("carinho", "tapa")
 DADOS = os.path.expanduser("~/.local/share/firelink/placar.json")
 SERVICOS = {"jellyfin": "http://127.0.0.1:8096/health", "kavita": "http://127.0.0.1:5000/"}
 trava = threading.Lock()
+trava_monitor = threading.Lock()
 ultimo_post = {}          # simple per-IP rate limit
 
 
@@ -186,6 +189,80 @@ def status():
     return {"ligado_seg": ligado, "servicos": {k: no_ar(u) for k, u in SERVICOS.items()}, "agora": int(time.time())}
 
 
+# ---------- live system monitor ----------
+mon = {"antes": None, "ultimo": None, "sensor": None}
+
+
+def amostra():
+    """CPU counters per line of /proc/stat and network byte counters (all interfaces but lo)."""
+    cpus = []
+    with open("/proc/stat") as f:
+        for linha in f:
+            if not linha.startswith("cpu"):
+                break
+            v = [int(n) for n in linha.split()[1:9]]
+            cpus.append((v[3] + v[4], sum(v)))        # (idle + iowait, total)
+    rx = tx = 0
+    with open("/proc/net/dev") as f:
+        for linha in f.readlines()[2:]:
+            nome, dados = linha.split(":", 1)
+            if nome.strip() != "lo":
+                d = dados.split()
+                rx += int(d[0]); tx += int(d[8])
+    return {"t": time.monotonic(), "cpus": cpus, "rx": rx, "tx": tx}
+
+
+def sensor_cpu():
+    """Path of the CPU package temperature (coretemp), or the x86_pkg_temp thermal zone."""
+    if mon["sensor"] is None:
+        mon["sensor"] = ""
+        for h in sorted(os.listdir("/sys/class/hwmon")):
+            base = "/sys/class/hwmon/" + h
+            if ler(base + "/name").strip() == "coretemp":
+                for arq in sorted(os.listdir(base)):
+                    if arq.endswith("_label") and ler(base + "/" + arq).strip().startswith("Package"):
+                        mon["sensor"] = base + "/" + arq.replace("_label", "_input")
+                if not mon["sensor"] and os.path.exists(base + "/temp1_input"):
+                    mon["sensor"] = base + "/temp1_input"
+        if not mon["sensor"]:
+            for z in sorted(os.listdir("/sys/class/thermal")):
+                if ler("/sys/class/thermal/%s/type" % z).strip() == "x86_pkg_temp":
+                    mon["sensor"] = "/sys/class/thermal/%s/temp" % z
+    try:
+        return round(int(ler(mon["sensor"])) / 1000, 1) if mon["sensor"] else None
+    except ValueError:
+        return None
+
+
+def monitor():
+    agora = amostra()
+    antes = mon["antes"]
+    if antes is None:                                   # first request: take a quick second reading
+        time.sleep(0.25)
+        antes, agora = agora, amostra()
+    elif agora["t"] - antes["t"] < 0.3 and mon["ultimo"]:
+        return mon["ultimo"]                            # two pages asking at the same moment
+    dt = agora["t"] - antes["t"]
+    usos = []
+    for (i0, t0), (i1, t1) in zip(antes["cpus"], agora["cpus"]):
+        total = t1 - t0
+        usos.append(round(100 * (1 - (i1 - i0) / total), 1) if total > 0 else 0.0)
+    mem = {k: int(v.split()[0]) * 1024 for k, v in re.findall(r"^(\w+):\s+(.+)$", ler("/proc/meminfo"), re.M)}
+    fs = os.statvfs("/")
+    mon["antes"] = agora
+    mon["ultimo"] = {
+        "cpu": usos[0] if usos else 0.0,
+        "nucleos": usos[1:],
+        "mem": {"total": mem.get("MemTotal", 0), "usado": mem.get("MemTotal", 0) - mem.get("MemAvailable", 0),
+                "swap_total": mem.get("SwapTotal", 0), "swap_usado": mem.get("SwapTotal", 0) - mem.get("SwapFree", 0)},
+        "rede": {"rx": max(0, int((agora["rx"] - antes["rx"]) / dt)), "tx": max(0, int((agora["tx"] - antes["tx"]) / dt))},
+        "temp": sensor_cpu(),
+        "disco": {"total": fs.f_blocks * fs.f_frsize, "usado": (fs.f_blocks - fs.f_bfree) * fs.f_frsize,
+                  "livre": fs.f_bavail * fs.f_frsize},
+    }
+    return mon["ultimo"]
+
+
 def versao(texto):
     """First x.y.z(.w) in a string, or None."""
     m = re.search(r"\d+(?:\.\d+){1,3}", texto or "")
@@ -269,6 +346,9 @@ class Api(BaseHTTPRequestHandler):
         url = urlsplit(self.path)
         if url.path == "/api/status":
             return self._json(200, status())
+        if url.path == "/api/monitor":
+            with trava_monitor:
+                return self._json(200, monitor())
         if url.path == "/api/sistema":
             return self._json(200, sistema_em_cache())
         if url.path == "/api/placar":

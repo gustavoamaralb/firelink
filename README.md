@@ -56,9 +56,15 @@ A single HTML file with no dependencies besides two Google Fonts.
   Web Audio API) when petted, swats when the cursor gets too close to her face or when
   someone touches her tail, accepts at most three pets in a row, and calls for attention
   ("Rrrrruuuuuuu!!!") when the page sits idle.
-- **Server panel:** status lights for Jellyfin and Kavita, uptime, a disk usage bar, disk
-  health (SMART, temperature, last self-test) and Akali's scoreboard of pets and swats per
-  person, shared across devices.
+- **Server panel:** status lights for Jellyfin and Kavita, uptime, disk health (SMART,
+  temperature, last self-test) and Akali's scoreboard of pets and swats per person, shared
+  across devices.
+- **System monitor:** a one-line summary (CPU, RAM, CPU temperature, disk) that opens, in
+  place, into a live monitor in the spirit of the Linux system monitor: a rolling pixel graph
+  of CPU use over the last minute with a bar per core, memory in use (without the cache) and
+  swap when it is used, network speed with its own graph, CPU temperature and disk space.
+  `/api/monitor` reads `/proc` and `/sys` on each request and stores nothing; the page asks
+  every second only while the monitor is open and on screen, and every 10 s otherwise.
 - **Household chat:** a side panel (full screen on phones) for messages between the
   household's computers, kept on the server (`/api/chat`, a JSON Lines file written only
   when someone sends or reads). Clickable links, a copy button on every message (works over
