@@ -2,13 +2,14 @@
 """Small API for the firelink home page (listens on 127.0.0.1 only; Caddy proxies /api/*).
 
 GET  /api/status   -> services up/down and uptime (checked on each request)
+GET  /api/sistema  -> Debian release, kernel and versions of the main services (cached for 1 h)
 GET  /api/placar   -> Akali's pets ("carinho") and swats ("tapa") per person
 POST /api/placar   -> {"quem": "<name>", "tipo": "carinho" | "tapa"} adds 1
 
 Valid names come from /srv/www/firelink/config.js (the same file the page uses).
 Standard library only.
 """
-import json, os, threading, time, urllib.request
+import json, os, platform, re, sqlite3, subprocess, threading, time, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 CONFIG = "/srv/www/firelink/config.js"
@@ -62,6 +63,73 @@ def status():
     return {"ligado_seg": ligado, "servicos": {k: no_ar(u) for k, u in SERVICOS.items()}, "agora": int(time.time())}
 
 
+def versao(texto):
+    """First x.y.z(.w) in a string, or None."""
+    m = re.search(r"\d+(?:\.\d+){1,3}", texto or "")
+    return m.group(0) if m else None
+
+
+def comando(*args):
+    try:
+        return subprocess.run(args, capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def versao_jellyfin():
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:8096/System/Info/Public", timeout=2) as r:
+            return versao(json.load(r).get("Version"))
+    except Exception:
+        return None
+
+
+def versao_kavita():
+    """Kavita keeps its installed version in its own database (ServerSetting key 11, InstallVersion)."""
+    for uri in ("file:/opt/Kavita/config/kavita.db?mode=ro", "file:/opt/Kavita/config/kavita.db?immutable=1"):
+        try:
+            with sqlite3.connect(uri, uri=True, timeout=2) as c:
+                linha = c.execute("SELECT Value FROM ServerSetting WHERE Key = 11").fetchone()
+            if linha:
+                return versao(linha[0])
+        except sqlite3.Error:
+            continue
+    return None
+
+
+def ler(caminho):
+    try:
+        with open(caminho) as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+def sistema():
+    os_release = dict(re.findall(r'^(\w+)="?([^"\n]*)"?$', ler("/etc/os-release"), re.M))
+    return {
+        "debian": ler("/etc/debian_version").strip() or os_release.get("VERSION_ID"),
+        "codinome": os_release.get("VERSION_CODENAME"),
+        "kernel": platform.release(),
+        "versoes": {
+            "Jellyfin": versao_jellyfin(),
+            "Kavita": versao_kavita(),
+            "Samba": versao(comando("/usr/sbin/smbd", "-V")),
+            "Caddy": versao(comando("caddy", "version")),
+        },
+    }
+
+
+cache_sistema = {"t": 0, "d": None}
+
+
+def sistema_em_cache():
+    agora = time.monotonic()
+    if cache_sistema["d"] is None or agora - cache_sistema["t"] > 3600:
+        cache_sistema.update(t=agora, d=sistema())
+    return cache_sistema["d"]
+
+
 class Api(BaseHTTPRequestHandler):
     server_version = "firelink-api"
 
@@ -77,6 +145,8 @@ class Api(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/status":
             return self._json(200, status())
+        if self.path == "/api/sistema":
+            return self._json(200, sistema_em_cache())
         if self.path == "/api/placar":
             with trava:
                 return self._json(200, ler_placar())
