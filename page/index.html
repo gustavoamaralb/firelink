@@ -325,6 +325,9 @@
   .rcopiar { background: none; border: 0; padding: 0; font-family: "VT323", monospace; font-size: 16px; color: var(--gold-dark); cursor: pointer; }
   .rcopiar:hover, .rcopiar:focus-visible { color: var(--gold); outline: none; }
   .rcopiar.ok { color: #9fdc7c; }
+  .rpergunta { color: var(--text); }
+  .rcopiar.rperigo { color: #ff7a5c; }
+  .rcopiar.rperigo:hover, .rcopiar.rperigo:focus-visible { color: #ffa08a; }
   .rdia { align-self: center; margin-bottom: -6px; font-family: "Silkscreen", monospace; font-size: 11px; letter-spacing: .12em; color: var(--gold-dark); }
   .rvisto { align-self: flex-end; margin-top: -16px; font-size: 16px; color: var(--muted); }
   .rvisto svg { vertical-align: -1px; margin-right: 4px; }
@@ -2022,6 +2025,24 @@
         pe.appendChild(bs); el.appendChild(texto); el.appendChild(pe); fxLista.appendChild(el);
       });
     }
+    // deleting one's own message: asks first, right there in the message
+    function confirmarApagar(bs, id) {
+      bs.innerHTML = '';
+      bs.appendChild(criar('span', 'rpergunta', 'apagar?'));
+      bs.appendChild(botao('rcopiar rperigo', 'sim', function () { apagar(id); }));
+      bs.appendChild(botao('rcopiar', 'não', function () { desenhar(); }));
+      bs.lastChild.focus();
+    }
+    function apagar(id) {
+      var quem = eu(); if (!quem) return;
+      fetch('api/chat/apagar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quem: quem, id: id }) })
+        .then(function (r) { if (!r.ok) throw { nossa: true, message: 'A guardiã não conseguiu apagar a mensagem.' }; return r.json(); })
+        .then(function (d) {
+          mensagens = mensagens.filter(function (m) { return m.id !== id; });
+          fixadas = d.fixadas || []; erro.hidden = true; desenharFixadas(); desenhar();
+        })
+        .catch(function (e) { erro.textContent = e.nossa ? e.message : 'Sem conexão com o firelink. Tente de novo.'; erro.hidden = false; desenhar(); });
+    }
     fxTopo.addEventListener('click', function () {
       fxAberta = !fxAberta; try { localStorage.setItem('firelink.fixadasAbertas', fxAberta ? '1' : '0'); } catch (e) {}
       desenharFixadas();
@@ -2052,12 +2073,13 @@
         var pe = criar('div', 'rpe'), h = criar('span', null, hora(r.t));
         if (presa) { var pn = criar('span', 'pino'); pn.innerHTML = pino; pn.title = 'fixada'; h.appendChild(pn); }
         pe.appendChild(h);
+        var bs = criar('span', 'botoes');
         if (!fig) {
-          var bs = criar('span', 'botoes');
           bs.appendChild(botao('rcopiar', presa ? 'desafixar' : 'fixar', function () { fixar(r.id, !presa); }));
           var cp = botao('rcopiar', 'copiar', function () { copiar(r.texto, cp); }); bs.appendChild(cp);
-          pe.appendChild(bs);
         }
+        if (r.quem === quem) bs.appendChild(botao('rcopiar', 'apagar', function () { confirmarApagar(bs, r.id); }));
+        if (bs.childNodes.length) pe.appendChild(bs);
         el.appendChild(pe);
         lista.appendChild(el);
       });
@@ -2124,15 +2146,21 @@
       if (buscando) { deNovo = true; return; }
       buscando = true; clearTimeout(timer);
       fetch('api/chat?desde=' + ultimo, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
-        var novos = (d.mensagens || []).filter(function (r) { return r.id > ultimo; });
+        var chegou = (d.mensagens || []).filter(function (r) { return r.id > ultimo; });
+        var apagadas = d.apagadas || [];
+        var novos = chegou.filter(function (r) { return !r.apagada && apagadas.indexOf(r.id) < 0; });
+        var antes = mensagens.length;
+        mensagens = mensagens.filter(function (r) { return apagadas.indexOf(r.id) < 0; });   // deleted on another device
+        var sumiram = mensagens.length !== antes;
         var vistoMudou = JSON.stringify(d.lidos || {}) !== JSON.stringify(lidos);
         var fxMudou = JSON.stringify(d.fixadas || []) !== JSON.stringify(fixadas);
         // never move my own read mark backwards while the POST is on its way
         var quem = eu(), meu = lidos[quem] || 0;
         lidos = d.lidos || {}; if (quem && meu > (lidos[quem] || 0)) lidos[quem] = meu;
         if (fxMudou) { fixadas = d.fixadas || []; desenharFixadas(); }
-        if (novos.length) { mensagens = mensagens.concat(novos).slice(-500); ultimo = novos[novos.length - 1].id; }
-        if (aberto && (novos.length || vistoMudou || fxMudou || !carregou)) desenhar(carregou ? novos.map(function (r) { return r.id; }) : true);
+        if (chegou.length) ultimo = chegou[chegou.length - 1].id;
+        if (novos.length) mensagens = mensagens.concat(novos).slice(-500);
+        if (aberto && (novos.length || vistoMudou || fxMudou || sumiram || !carregou)) desenhar(carregou ? novos.map(function (r) { return r.id; }) : true);
         if (carregou) anunciar(novos);
         else if (naoLidos()) setTimeout(function () {             // after the keeper's greeting
           var n = naoLidos(); if (n && !aberto && window.akaliFala)

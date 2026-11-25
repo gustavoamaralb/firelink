@@ -10,6 +10,10 @@ GET  /api/chat?desde=<id> -> household chat messages after that id (the last 200
 POST /api/chat     -> {"quem": "<name>", "texto": "..."} or {"quem": "<name>", "figurinha": "<sticker>"} sends a message
 POST /api/chat/lido -> {"quem": "<name>", "id": <id>} marks messages as read up to that id
 POST /api/chat/fixar -> {"quem": "<name>", "id": <id>, "fixa": true | false} pins or unpins a text message
+POST /api/chat/apagar -> {"quem": "<name>", "id": <id>} deletes one's own message
+
+A deleted message is rewritten in the file as {"id": <id>, "apagada": true}: its content is gone and
+its id is never reused, so the pages learn about the deletion and never mix up two messages.
 
 Messages are appended to a JSON Lines file only when someone sends one (polling never writes to the disk).
 
@@ -96,6 +100,25 @@ def gravar_json(caminho, d):
     os.replace(tmp, caminho)
 
 
+def reescrever_mensagens():
+    tmp = MENSAGENS + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        for r in mensagens():
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    os.replace(tmp, MENSAGENS)
+
+
+def apagar_mensagem(ident):
+    lista = mensagens()
+    for i, r in enumerate(lista):
+        if r["id"] == ident:
+            lista[i] = memoria["indice"][ident] = {"id": ident, "apagada": True}
+            break
+    reescrever_mensagens()
+    if fixadas().pop(str(ident), None):
+        gravar_json(FIXADAS, fixadas())
+
+
 def fixadas():
     """{"<id>": {"por": <name>, "t": <when>}} of pinned messages."""
     if memoria["fixadas"] is None:
@@ -114,7 +137,7 @@ def fixadas_lista():
     lista = []
     for k, v in fixadas().items():
         r = memoria["indice"].get(int(k)) if k.isdigit() else None
-        if r:
+        if r and not r.get("apagada"):
             lista.append(dict(r, por=v.get("por"), fixada_em=v.get("t", 0)))
     return sorted(lista, key=lambda r: -r["fixada_em"])
 
@@ -261,7 +284,8 @@ class Api(BaseHTTPRequestHandler):
                 novos = [r for r in mensagens() if r["id"] > desde][-200:]
                 vistos = {k: v for k, v in lidos().items() if k in nomes}
                 presas = fixadas_lista()
-            return self._json(200, {"mensagens": novos, "lidos": vistos, "fixadas": presas})
+                apagadas = [r["id"] for r in mensagens() if r.get("apagada")]
+            return self._json(200, {"mensagens": novos, "lidos": vistos, "fixadas": presas, "apagadas": apagadas})
         self._json(404, {"error": "not found"})
 
     def _pedido(self, limite):
@@ -273,7 +297,7 @@ class Api(BaseHTTPRequestHandler):
         return pedido if isinstance(pedido, dict) else None
 
     def do_POST(self):
-        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2, "/api/chat/fixar": 0.3}
+        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2, "/api/chat/fixar": 0.3, "/api/chat/apagar": 0.3}
         if self.path not in rotas:
             return self._json(404, {"error": "not found"})
         ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
@@ -311,6 +335,20 @@ class Api(BaseHTTPRequestHandler):
                 return self._json(400, {"error": "invalid request"})
             with trava:
                 return self._json(200, {"mensagem": nova_mensagem(quem, "texto", texto)})
+
+        if self.path == "/api/chat/apagar":
+            ident = pedido.get("id")
+            if not isinstance(ident, int) or isinstance(ident, bool):
+                return self._json(400, {"error": "invalid request"})
+            with trava:
+                mensagens()
+                r = memoria["indice"].get(ident)
+                if not r or r.get("apagada"):
+                    return self._json(400, {"error": "invalid request"})
+                if r.get("quem") != quem:
+                    return self._json(403, {"error": "only the author can delete a message"})
+                apagar_mensagem(ident)
+                return self._json(200, {"apagada": ident, "fixadas": fixadas_lista()})
 
         if self.path == "/api/chat/fixar":
             ident, fixa = pedido.get("id"), pedido.get("fixa")
