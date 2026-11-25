@@ -66,9 +66,9 @@ LIDOS = os.path.expanduser("~/.local/share/firelink/chat-lidos.json")
 FIXADAS = os.path.expanduser("~/.local/share/firelink/chat-fixadas.json")
 MAX_TEXTO = 2000
 MAX_FIXADAS = 12
-# stickers drawn by the page from its own sprites
+# stickers of Akali, drawn by the page
 FIGURINHAS = ("akali-dormindo", "akali-ronrona", "akali-tapa", "akali-arrepiada", "akali-capuz",
-              "akali-deitada", "akali-barriga", "guardia", "fogueira", "coracao", "pata")
+              "akali-deitada", "akali-barriga")
 CONTROLE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
 memoria = {"mensagens": None, "indice": None, "lidos": None, "fixadas": None}     # loaded on first use, then kept in memory
 

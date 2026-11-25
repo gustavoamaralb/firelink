@@ -65,10 +65,10 @@ A single HTML file with no dependencies besides two Google Fonts.
   plain HTTP), "seen by", and new-message alerts in the tab title, the favicon and the
   keeper's dialogue box, while Akali turns her eyes to the button. Everyone can delete their
   own messages (the content is removed from the server's file too). Messages can be pinned
-  (up to 12, shown in a bar at the top of the panel), and there are pixel stickers: Akali
-  in poses drawn from photos of her (peeking out of a hood, lying on her side, belly up)
-  and in the page sprite's poses (asleep, purring, swatting, spooked), the keeper and the
-  bonfire. Stickers always show everyone's everyday look, without the season's accessories.
+  (up to 12, shown in a bar at the top of the panel), and there are pixel stickers of Akali:
+  poses drawn from photos of her (peeking out of a hood, lying on her side, belly up) and the
+  page sprite's poses (asleep, purring, swatting, spooked), always in her everyday look,
+  without the season's accessories.
 - **Day and night:** a starry sky at night, warm light in the morning.
 - **Special dates:** on birthdays, pixel balloons drifting up the page, confetti and a cake whose
   candle can be blown out (tap it to make a wish); a pet's "home birthday" also puts a party

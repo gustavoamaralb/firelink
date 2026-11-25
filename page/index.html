@@ -370,6 +370,7 @@
   .msg.fig .rnome { left: 4px; }
   .msg.fig.meu .rnome { left: auto; right: 4px; }
   .msg.fig img, .figs img { image-rendering: pixelated; image-rendering: crisp-edges; display: block; margin: 0 auto; }
+  .fig-removida { font-size: 18px; color: var(--muted); }
   .fig-legenda { margin-top: 4px; font-size: 20px; color: #d9ccb4; text-shadow: 2px 2px 0 #2a1d14; }
   .fig-legenda.forte { font-family: "Silkscreen", monospace; font-size: 14px; color: #ffd36b; text-shadow: 2px 2px 0 #3a2410; }
   .msg.fig .rpe { justify-content: center; }
@@ -715,22 +716,15 @@
       x.fillStyle = '#00000000';
       if (alto === 1) { x.fillStyle = '#ffcc5a'; x.fillRect(7, 11, 2, 1); }
       if (alto === 2) { x.fillStyle = '#fff1b8'; x.fillRect(8, 11, 1, 1); x.fillStyle = '#ff9a2e'; x.fillRect(7, 12, 1, 1); }
-      if (ESPECIAL.maes && !normal) {      // Mother's Day: a small bouquet instead of the candle
+      if (ESPECIAL.maes) {      // Mother's Day: a small bouquet instead of the candle
         x.clearRect(6, 10, 4, 5);
         [[6,10,'#ff8fb1'],[7,10,'#fff0f4'],[8,10,'#e0507a'],[9,10,'#ff8fb1'],
          [6,11,'#e0507a'],[7,11,'#ffd36b'],[8,11,'#ff8fb1'],[9,11,'#fff0f4'],
          [7,12,'#4f8a3a'],[8,12,'#3d6e2c'],[7,13,'#b8957c'],[8,13,'#b8957c'],[7,14,'#4f8a3a']].forEach(function (f) { x.fillStyle = f[2]; x.fillRect(f[0], f[1], 1, 1); });
       }
     }
-    var t = 0, normal = false; desenhar(t);
+    var t = 0; desenhar(t);
     if (!quieto) setInterval(function () { desenhar(++t); }, 260);
-    // everyday portrait for the chat stickers (candle, not the Mother's Day bouquet)
-    window.guardiaRetrato = function () {
-      normal = true; desenhar(0);
-      var k = document.createElement('canvas'); k.width = c.width; k.height = c.height; k.getContext('2d').drawImage(c, 0, 0);
-      normal = false; desenhar(t);
-      return k;
-    };
   })();
 
   // ---------- dialogue box: the keeper asks who arrived and remembers it (per device) ----------
@@ -1798,13 +1792,6 @@
       lenha();
     }
     base(); for (var i = 0; i < 60; i++) passo(); desenhar();
-    // everyday portrait for the chat stickers: the usual orange flame, not Halloween green or Mother's Day pink
-    window.fogoRetrato = function () {
-      var era = pal; pal = PAL_NORMAL; desenhar();
-      var k = document.createElement('canvas'); k.width = W; k.height = H; k.getContext('2d').drawImage(c, 0, 0);
-      pal = era; desenhar();
-      return k;
-    };
     if (quieto) return;
     setInterval(function () { base(); passo(); desenhar(); }, 90);
   })();
@@ -1876,7 +1863,7 @@
     function botao(cls, texto, acao) { var b = criar('button', cls, texto); b.type = 'button'; b.addEventListener('click', acao); return b; }
     function ehFixada(id) { return fixadas.some(function (f) { return f.id === id; }); }
 
-    // ---------- stickers: drawn from the page's own sprites, and Akali also from photos of her ----------
+    // ---------- stickers of Akali: poses of the page sprite and poses drawn from photos of her ----------
     var PAL = { W:'#f4f1ea', w:'#cdc6ba', B:'#2e221c', b:'#6e5242', c:'#8f6e58', f:'#c4a07e', T:'#3a2c22', t:'#56402f', u:'#7a5e48',
                 p:'#e9a3a6', E:'#8fd3f5', k:'#1b1512', n:'#e2b9b9', H:'#7a58b0', h:'#54398a', L:'#9a78d0', o:'#160f1c',
                 R:'#ff5a7a', r:'#d93a5e', l:'#ffb3c4' };
@@ -1929,17 +1916,12 @@
         "......bb.bbbbbb..bb.....", "......bnb.......bnb.....",
         "......bb.........bb.....", "......b...........b....."
       ],
-      'coracao': [".RR.RR.", "RlRRRRR", "RRRRRRr", ".RRRRr.", "..RRr..", "...r..."],
-      'pata': ["..p.p..", "p.....p", "..ppp..", ".ppppp.", ".ppppp.", "..ppp.."]
+      'coracao': [".RR.RR.", "RlRRRRR", "RRRRRRr", ".RRRRr.", "..RRr..", "...r..."]     // hearts over the purring sticker
     };
     function grade(g) {
       var k = document.createElement('canvas'); k.width = g[0].length; k.height = g.length; var x = k.getContext('2d');
       g.forEach(function (l, y) { for (var i = 0; i < l.length; i++) if (PAL[l[i]]) { x.fillStyle = PAL[l[i]]; x.fillRect(i, y, 1, 1); } });
       return k;
-    }
-    function copia(id) {
-      var o = document.getElementById(id); if (!o || !o.width) return null;
-      var k = document.createElement('canvas'); k.width = o.width; k.height = o.height; k.getContext('2d').drawImage(o, 0, 0); return k;
     }
     function akali(pose) { return window.akaliRetrato ? window.akaliRetrato(pose) : null; }
     function ronrona() {
@@ -1956,11 +1938,7 @@
       ['akali-arrepiada', 'Hsss!', true, function () { return akali({ arrepio: 1 }); }],
       ['akali-capuz', 'Mel...', false, function () { return grade(GRADES.capuz); }],
       ['akali-deitada', 'Hm?', false, function () { return grade(GRADES.deitada); }],
-      ['akali-barriga', 'armadilha!', true, function () { return grade(GRADES.barriga); }],
-      ['guardia', 'Descanse.', false, function () { return window.guardiaRetrato ? window.guardiaRetrato() : copia('guardia'); }],
-      ['fogueira', 'Fogo aceso!', false, function () { return window.fogoRetrato ? window.fogoRetrato() : copia('fogo'); }],
-      ['coracao', '', false, function () { return grade(GRADES.coracao); }],
-      ['pata', '', false, function () { return grade(GRADES.pata); }]
+      ['akali-barriga', 'armadilha!', true, function () { return grade(GRADES.barriga); }]
     ];
     var cacheFig = {};
     function infoFig(id) { return FIGS.filter(function (f) { return f[0] === id; })[0]; }
@@ -2081,7 +2059,7 @@
         el.appendChild(criar('span', 'rnome', r.quem));
         if (fig) {
           var img = imgFig(r.figurinha, 120, 104, 8);
-          if (img) el.appendChild(img); else el.appendChild(criar('div', 'rtexto', '(figurinha)'));
+          if (img) el.appendChild(img); else el.appendChild(criar('div', 'rtexto fig-removida', '(figurinha removida)'));
           var l = legenda(r.figurinha); if (l) el.appendChild(l);
         } else {
           var texto = criar('div', 'rtexto'); comLinks(texto, r.texto || ''); el.appendChild(texto);
