@@ -370,7 +370,7 @@ class Api(BaseHTTPRequestHandler):
 
     def _pedido(self, limite):
         try:
-            n = min(int(self.headers.get("Content-Length", 0)), limite)
+            n = max(0, min(int(self.headers.get("Content-Length", 0)), limite))   # a negative length would block on read
             pedido = json.loads(self.rfile.read(n) or b"{}")
         except ValueError:
             return None

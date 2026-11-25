@@ -38,7 +38,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 ```
 page/         home page (a single HTML file) and the household config example
 api/          firelink-api, its systemd unit (template) and the install script
-scripts/      firelink-disk.sh (disk usage) and firelink-smart (disk health)
+scripts/      firelink-smart (disk health) and firelink-disk.sh (disk usage snapshot; the page now reads it live from the API)
 config/       samba, caddy, nftables, ssh, systemd, cron, apt and disks
 assets/       README banner (rendered from the home page itself)
 ```
@@ -124,9 +124,9 @@ affiliated with the game or its creators.
 6. Home page: copy `page/index.html` to `/srv/www/firelink/` and create `config.js` next
    to it from `config.example.js`, listing the household members, their birthdays and who
    gets Mother's Day greetings. The API reads the names from the same file.
-7. Scripts and API: put `scripts/firelink-disk.sh` in `~/bin` with the crontab in
-   `config/cron/crontab-user`; put the `api/` files and `scripts/firelink-smart` in
-   `~/firelink-api`; then run `sudo sh ~/firelink-api/install.sh`.
+7. Scripts and API: put the `api/` files and `scripts/firelink-smart` in `~/firelink-api`,
+   then run `sudo sh ~/firelink-api/install.sh`. (`scripts/firelink-disk.sh` and the crontab in
+   `config/cron/crontab-user` are optional: the page takes disk space from `/api/monitor`.)
 
 ## Configuration decisions
 
