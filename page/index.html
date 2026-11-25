@@ -715,15 +715,22 @@
       x.fillStyle = '#00000000';
       if (alto === 1) { x.fillStyle = '#ffcc5a'; x.fillRect(7, 11, 2, 1); }
       if (alto === 2) { x.fillStyle = '#fff1b8'; x.fillRect(8, 11, 1, 1); x.fillStyle = '#ff9a2e'; x.fillRect(7, 12, 1, 1); }
-      if (ESPECIAL.maes) {      // Mother's Day: a small bouquet instead of the candle
+      if (ESPECIAL.maes && !normal) {      // Mother's Day: a small bouquet instead of the candle
         x.clearRect(6, 10, 4, 5);
         [[6,10,'#ff8fb1'],[7,10,'#fff0f4'],[8,10,'#e0507a'],[9,10,'#ff8fb1'],
          [6,11,'#e0507a'],[7,11,'#ffd36b'],[8,11,'#ff8fb1'],[9,11,'#fff0f4'],
          [7,12,'#4f8a3a'],[8,12,'#3d6e2c'],[7,13,'#b8957c'],[8,13,'#b8957c'],[7,14,'#4f8a3a']].forEach(function (f) { x.fillStyle = f[2]; x.fillRect(f[0], f[1], 1, 1); });
       }
     }
-    var t = 0; desenhar(t);
+    var t = 0, normal = false; desenhar(t);
     if (!quieto) setInterval(function () { desenhar(++t); }, 260);
+    // everyday portrait for the chat stickers (candle, not the Mother's Day bouquet)
+    window.guardiaRetrato = function () {
+      normal = true; desenhar(0);
+      var k = document.createElement('canvas'); k.width = c.width; k.height = c.height; k.getContext('2d').drawImage(c, 0, 0);
+      normal = false; desenhar(t);
+      return k;
+    };
   })();
 
   // ---------- dialogue box: the keeper asks who arrived and remembers it (per device) ----------
@@ -933,6 +940,7 @@
       "........sssssssssssssssssssssss...",
       ".................................." ]];
     var acordada = false, quadro = 'base', tapa = false, olhar = { x: 0, y: 1 }, arrepio = 0;
+    var semEnfeite = false;   // chat stickers show her everyday look, without the season's hats
 
     // tail: fluffy curve drawn separately from the body; only the tip changes between frames
     var pontos = {
@@ -981,30 +989,30 @@
       x.clearRect(0, 0, 34, 22);
       if (arrepio) {   // spooked pose replaces the loaf (only the witch hat, a bit lower, on her head)
         ARREPIO[arrepio - 1].forEach(function (lin, y) { for (var i = 0; i < 34; i++) if (P[lin[i]]) px(i, y, P[lin[i]]); });
-        if (ESPECIAL.halloween) chapeuBruxa(2);
+        if (!semEnfeite && ESPECIAL.halloween) chapeuBruxa(2);
         return;
       }
       base.forEach(function (lin, y) {
         for (var i = 0; i < 34; i++) { var k = lin[i]; if (P[k]) px(i, y, P[k]); }
       });
-      if (ESPECIAL.aniversariantes.indexOf('Akali') >= 0) {   // her "home birthday": a striped party hat
+      if (!semEnfeite && ESPECIAL.aniversariantes.indexOf('Akali') >= 0) {   // her "home birthday": a striped party hat
         [[7,0,'Y'],[7,1,'R'],[6,2,'B'],[7,2,'Y'],[8,2,'B'],[5,3,'R'],[6,3,'Y'],[7,3,'R'],[8,3,'Y'],[9,3,'R'],
          [4,4,'B'],[5,4,'B'],[6,4,'R'],[7,4,'B'],[8,4,'R'],[9,4,'B'],[10,4,'B']].forEach(function (h) {
           px(h[0], h[1], { Y: '#ffd36b', R: '#e0402a', B: '#7fc8ff' }[h[2]]);
         });
       }
-      if (ESPECIAL.halloween) chapeuBruxa(0);   // Halloween: a little witch hat
-      if (ESPECIAL.pascoa) {     // Easter: bunny-ear headband
+      if (!semEnfeite && ESPECIAL.halloween) chapeuBruxa(0);   // Halloween: a little witch hat
+      if (!semEnfeite && ESPECIAL.pascoa) {     // Easter: bunny-ear headband
         [[5,0,'W'],[6,0,'W'],[5,1,'W'],[6,1,'n'],[5,2,'W'],[6,2,'n'],[5,3,'W'],[6,3,'W'],
          [9,0,'W'],[10,0,'W'],[9,1,'W'],[10,1,'n'],[9,2,'W'],[10,2,'n'],[9,3,'W'],[10,3,'W'],
          [4,4,'K'],[5,4,'K'],[6,4,'K'],[7,4,'K'],[8,4,'K'],[9,4,'K'],[10,4,'K'],[11,4,'K']].forEach(function (h) {
           px(h[0], h[1], { W: '#f4f1ea', n: '#f2a7b8', K: '#ff8fb1' }[h[2]]);
         });
       }
-      if (ESPECIAL.maes) {       // Mother's Day: a little flower by her ear
+      if (!semEnfeite && ESPECIAL.maes) {       // Mother's Day: a little flower by her ear
         [[12,1,'#ff8fb1'],[11,2,'#ff8fb1'],[13,2,'#ff8fb1'],[12,3,'#ff8fb1'],[12,2,'#ffd36b']].forEach(function (f) { px(f[0], f[1], f[2]); });
       }
-      if (ESPECIAL.dezembro) {   // Santa hat in the Christmas season
+      if (!semEnfeite && ESPECIAL.dezembro) {   // Santa hat in the Christmas season
         [[10,0,'W'],[11,0,'W'],[10,1,'W'],[11,1,'W'],                       // pompom
          [8,0,'R'],[9,0,'R'],[7,1,'R'],[8,1,'r'],[9,1,'R'],
          [5,2,'R'],[6,2,'R'],[7,2,'r'],[8,2,'R'],[9,2,'R'],
@@ -1029,14 +1037,14 @@
     }
     desenhar();
 
-    // a still portrait in a given pose for the chat stickers; the live sprite is restored right after
+    // a still portrait in a given pose for the chat stickers (everyday look); the live sprite is restored right after
     window.akaliRetrato = function (pose) {
       var antes = { acordada: acordada, olhar: olhar, quadro: quadro, tapa: tapa, arrepio: arrepio };
       acordada = !!pose.acordada; olhar = pose.olhar || { x: 0, y: 1 }; quadro = pose.quadro || 'base';
-      tapa = !!pose.tapa; arrepio = pose.arrepio || 0;
+      tapa = !!pose.tapa; arrepio = pose.arrepio || 0; semEnfeite = true;
       desenhar();
       var k = document.createElement('canvas'); k.width = 34; k.height = 22; k.getContext('2d').drawImage(c, 0, 0);
-      acordada = antes.acordada; olhar = antes.olhar; quadro = antes.quadro; tapa = antes.tapa; arrepio = antes.arrepio;
+      acordada = antes.acordada; olhar = antes.olhar; quadro = antes.quadro; tapa = antes.tapa; arrepio = antes.arrepio; semEnfeite = false;
       desenhar();
       return k;
     };
@@ -1738,11 +1746,12 @@
   (function () {
     var c = document.getElementById('fogo'), x = c.getContext('2d');
     var W = 42, H = 44, FW = 26, FH = 34, ox = 8, oy = 2;   // fire area inside the canvas
-    var pal = ESPECIAL.halloween ? ['#00000000','#12061e','#1c0a30','#260e44','#301256','#3a1868','#3e2a7a',
-               '#2f5a6e','#2f7a5e','#38a05a','#48c060','#62d670','#7fe68a','#9cf0a4','#b8f6be','#d2fad6','#e8fdea','#f8fff9'] : ESPECIAL.maes ? ['#00000000','#3a0814','#5a1022','#7a1832','#9a2244','#b82e58','#d43c6c',
-               '#e65080','#f06694','#f77ca6','#fb92b6','#fda6c4','#feb8d0','#ffc8da','#ffd8e4','#ffe6ee','#fff2f6','#fffbfc'] : ['#00000000','#3a0a04','#5a1206','#7a1a08','#9a240a','#b8320c','#d4420e',
+    var PAL_NORMAL = ['#00000000','#3a0a04','#5a1206','#7a1a08','#9a240a','#b8320c','#d4420e',
                '#e65412','#f06818','#f77d1e','#fb9226','#fda732','#feba44','#ffcc5a',
                '#ffdb76','#ffe896','#fff2ba','#fffbe0'];
+    var pal = ESPECIAL.halloween ? ['#00000000','#12061e','#1c0a30','#260e44','#301256','#3a1868','#3e2a7a',
+               '#2f5a6e','#2f7a5e','#38a05a','#48c060','#62d670','#7fe68a','#9cf0a4','#b8f6be','#d2fad6','#e8fdea','#f8fff9'] : ESPECIAL.maes ? ['#00000000','#3a0814','#5a1022','#7a1832','#9a2244','#b82e58','#d43c6c',
+               '#e65080','#f06694','#f77ca6','#fb92b6','#fda6c4','#feb8d0','#ffc8da','#ffd8e4','#ffe6ee','#fff2f6','#fffbfc'] : PAL_NORMAL;
     var MAX = pal.length - 1, fogo = new Array(FW * FH).fill(0);
     var meio = (FW - 1) / 2;
     function dist(col) { return Math.abs(col - meio) / meio; }   // 0 at the center, 1 at the edges
@@ -1789,6 +1798,13 @@
       lenha();
     }
     base(); for (var i = 0; i < 60; i++) passo(); desenhar();
+    // everyday portrait for the chat stickers: the usual orange flame, not Halloween green or Mother's Day pink
+    window.fogoRetrato = function () {
+      var era = pal; pal = PAL_NORMAL; desenhar();
+      var k = document.createElement('canvas'); k.width = W; k.height = H; k.getContext('2d').drawImage(c, 0, 0);
+      pal = era; desenhar();
+      return k;
+    };
     if (quieto) return;
     setInterval(function () { base(); passo(); desenhar(); }, 90);
   })();
@@ -1941,8 +1957,8 @@
       ['akali-capuz', 'Mel...', false, function () { return grade(GRADES.capuz); }],
       ['akali-deitada', 'Hm?', false, function () { return grade(GRADES.deitada); }],
       ['akali-barriga', 'armadilha!', true, function () { return grade(GRADES.barriga); }],
-      ['guardia', 'Descanse.', false, function () { return copia('guardia'); }],
-      ['fogueira', 'Fogo aceso!', false, function () { return copia('fogo'); }],
+      ['guardia', 'Descanse.', false, function () { return window.guardiaRetrato ? window.guardiaRetrato() : copia('guardia'); }],
+      ['fogueira', 'Fogo aceso!', false, function () { return window.fogoRetrato ? window.fogoRetrato() : copia('fogo'); }],
       ['coracao', '', false, function () { return grade(GRADES.coracao); }],
       ['pata', '', false, function () { return grade(GRADES.pata); }]
     ];

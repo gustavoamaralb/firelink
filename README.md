@@ -68,7 +68,7 @@ A single HTML file with no dependencies besides two Google Fonts.
   (up to 12, shown in a bar at the top of the panel), and there are pixel stickers: Akali
   in poses drawn from photos of her (peeking out of a hood, lying on her side, belly up)
   and in the page sprite's poses (asleep, purring, swatting, spooked), the keeper and the
-  bonfire. Stickers drawn from the live sprites wear the season's hats.
+  bonfire. Stickers always show everyone's everyday look, without the season's accessories.
 - **Day and night:** a starry sky at night, warm light in the morning.
 - **Special dates:** on birthdays, pixel balloons drifting up the page, confetti and a cake whose
   candle can be blown out (tap it to make a wish); a pet's "home birthday" also puts a party
