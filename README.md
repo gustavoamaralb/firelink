@@ -131,6 +131,10 @@ affiliated with the game or its creators.
 - **Household data stays out of Git:** names, birthdays and Mother's Day live in
   `config.js` on the server only. The repository ships a fictional example.
 
+## AI assistance
+
+Developed with [Claude Code](https://claude.com/claude-code) (Anthropic) as an AI coding assistant. Commits it contributed to carry a `Co-Authored-By: Claude` trailer.
+
 ## Copyright
 
 © 2026 Gustavo Brandão Amaral. All rights reserved.
