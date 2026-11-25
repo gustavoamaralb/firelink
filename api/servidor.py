@@ -6,8 +6,10 @@ GET  /api/sistema  -> Debian release, kernel and versions of the main services (
 GET  /api/placar   -> Akali's pets ("carinho") and swats ("tapa") per person
 POST /api/placar   -> {"quem": "<name>", "tipo": "carinho" | "tapa"} adds 1
 GET  /api/chat?desde=<id> -> household chat messages after that id (the last 200) and who has read up to where
-POST /api/chat     -> {"quem": "<name>", "texto": "..."} sends a message
+     (also the pinned messages)
+POST /api/chat     -> {"quem": "<name>", "texto": "..."} or {"quem": "<name>", "figurinha": "<sticker>"} sends a message
 POST /api/chat/lido -> {"quem": "<name>", "id": <id>} marks messages as read up to that id
+POST /api/chat/fixar -> {"quem": "<name>", "id": <id>, "fixa": true | false} pins or unpins a text message
 
 Messages are appended to a JSON Lines file only when someone sends one (polling never writes to the disk).
 
@@ -57,9 +59,14 @@ def gravar_placar(d):
 
 MENSAGENS = os.path.expanduser("~/.local/share/firelink/chat.jsonl")
 LIDOS = os.path.expanduser("~/.local/share/firelink/chat-lidos.json")
+FIXADAS = os.path.expanduser("~/.local/share/firelink/chat-fixadas.json")
 MAX_TEXTO = 2000
+MAX_FIXADAS = 12
+# stickers drawn by the page from its own sprites
+FIGURINHAS = ("akali-dormindo", "akali-ronrona", "akali-tapa", "akali-arrepiada", "akali-capuz",
+              "akali-deitada", "akali-barriga", "guardia", "fogueira", "coracao", "pata")
 CONTROLE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
-memoria = {"mensagens": None, "lidos": None}     # loaded on first use, then kept in memory
+memoria = {"mensagens": None, "indice": None, "lidos": None, "fixadas": None}     # loaded on first use, then kept in memory
 
 
 def mensagens():
@@ -77,7 +84,39 @@ def mensagens():
         except OSError:
             pass
         memoria["mensagens"] = lista
+        memoria["indice"] = {r["id"]: r for r in lista}
     return memoria["mensagens"]
+
+
+def gravar_json(caminho, d):
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    tmp = caminho + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(d, f, ensure_ascii=False)
+    os.replace(tmp, caminho)
+
+
+def fixadas():
+    """{"<id>": {"por": <name>, "t": <when>}} of pinned messages."""
+    if memoria["fixadas"] is None:
+        try:
+            with open(FIXADAS, encoding="utf-8") as f:
+                d = json.load(f)
+        except (OSError, ValueError):
+            d = {}
+        memoria["fixadas"] = {k: v for k, v in d.items() if isinstance(v, dict)} if isinstance(d, dict) else {}
+    return memoria["fixadas"]
+
+
+def fixadas_lista():
+    """Pinned messages in full (they may be older than what the page has loaded), newest pin first."""
+    mensagens()
+    lista = []
+    for k, v in fixadas().items():
+        r = memoria["indice"].get(int(k)) if k.isdigit() else None
+        if r:
+            lista.append(dict(r, por=v.get("por"), fixada_em=v.get("t", 0)))
+    return sorted(lista, key=lambda r: -r["fixada_em"])
 
 
 def lidos():
@@ -91,13 +130,14 @@ def lidos():
     return memoria["lidos"]
 
 
-def nova_mensagem(quem, texto):
+def nova_mensagem(quem, campo, valor):
     lista = mensagens()
-    r = {"id": (lista[-1]["id"] + 1) if lista else 1, "quem": quem, "texto": texto, "t": int(time.time())}
+    r = {"id": (lista[-1]["id"] + 1) if lista else 1, "quem": quem, campo: valor, "t": int(time.time())}
     os.makedirs(os.path.dirname(MENSAGENS), exist_ok=True)
     with open(MENSAGENS, "a", encoding="utf-8") as f:
         f.write(json.dumps(r, ensure_ascii=False) + "\n")
     lista.append(r)
+    memoria["indice"][r["id"]] = r
     return r
 
 
@@ -106,11 +146,7 @@ def marcar_lido(quem, ate):
     if ate <= d.get(quem, 0):
         return
     d[quem] = ate
-    os.makedirs(os.path.dirname(LIDOS), exist_ok=True)
-    tmp = LIDOS + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump(d, f)
-    os.replace(tmp, LIDOS)
+    gravar_json(LIDOS, d)
 
 
 def no_ar(url):
@@ -224,7 +260,8 @@ class Api(BaseHTTPRequestHandler):
             with trava:
                 novos = [r for r in mensagens() if r["id"] > desde][-200:]
                 vistos = {k: v for k, v in lidos().items() if k in nomes}
-            return self._json(200, {"mensagens": novos, "lidos": vistos})
+                presas = fixadas_lista()
+            return self._json(200, {"mensagens": novos, "lidos": vistos, "fixadas": presas})
         self._json(404, {"error": "not found"})
 
     def _pedido(self, limite):
@@ -236,7 +273,7 @@ class Api(BaseHTTPRequestHandler):
         return pedido if isinstance(pedido, dict) else None
 
     def do_POST(self):
-        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2}
+        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2, "/api/chat/fixar": 0.3}
         if self.path not in rotas:
             return self._json(404, {"error": "not found"})
         ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
@@ -260,6 +297,12 @@ class Api(BaseHTTPRequestHandler):
                 return self._json(200, d)
 
         if self.path == "/api/chat":
+            figurinha = pedido.get("figurinha")
+            if figurinha is not None:
+                if figurinha not in FIGURINHAS:
+                    return self._json(400, {"error": "invalid request"})
+                with trava:
+                    return self._json(200, {"mensagem": nova_mensagem(quem, "figurinha", figurinha)})
             texto = pedido.get("texto")
             if not isinstance(texto, str):
                 return self._json(400, {"error": "invalid request"})
@@ -267,7 +310,27 @@ class Api(BaseHTTPRequestHandler):
             if not texto or len(texto) > MAX_TEXTO:
                 return self._json(400, {"error": "invalid request"})
             with trava:
-                return self._json(200, {"mensagem": nova_mensagem(quem, texto)})
+                return self._json(200, {"mensagem": nova_mensagem(quem, "texto", texto)})
+
+        if self.path == "/api/chat/fixar":
+            ident, fixa = pedido.get("id"), pedido.get("fixa")
+            if not isinstance(ident, int) or isinstance(ident, bool) or not isinstance(fixa, bool):
+                return self._json(400, {"error": "invalid request"})
+            with trava:
+                mensagens()
+                r = memoria["indice"].get(ident)
+                if not r or "texto" not in r:
+                    return self._json(400, {"error": "invalid request"})
+                d, k = fixadas(), str(ident)
+                if fixa and k not in d:
+                    if len(d) >= MAX_FIXADAS:
+                        return self._json(409, {"error": "too many pinned messages"})
+                    d[k] = {"por": quem, "t": int(time.time())}
+                    gravar_json(FIXADAS, d)
+                elif not fixa and k in d:
+                    del d[k]
+                    gravar_json(FIXADAS, d)
+                return self._json(200, {"fixadas": fixadas_lista()})
 
         ate = pedido.get("id")
         if not isinstance(ate, int) or isinstance(ate, bool):

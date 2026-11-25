@@ -345,6 +345,43 @@
   .chat-envio button:active { transform: translateY(2px); box-shadow: 0 2px 0 0 #7a3a10; }
   .chat-envio button:disabled { background: #3a2a1c; color: #6f604c; box-shadow: 0 4px 0 0 #000; cursor: default; }
   .chat-aviso { margin: 0 16px; font-size: 17px; color: #ff7a5c; }
+  /* pinned messages */
+  .chat-fixadas { border-bottom: 3px solid #2a2018; background: #120d09; }
+  .fx-topo { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 16px; background: none; border: 0; cursor: pointer; text-align: left; color: var(--gold); font-family: "Silkscreen", monospace; font-size: 12px; letter-spacing: .08em; }
+  .fx-topo:hover, .fx-topo:focus-visible { background: #1b140d; outline: none; }
+  .fx-topo .fx-previa { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: "VT323", monospace; font-size: 19px; letter-spacing: 0; color: var(--muted); }
+  .fx-topo[aria-expanded="true"] .fx-previa { visibility: hidden; }
+  .fx-seta { color: var(--gold-dark); font-family: "VT323", monospace; font-size: 18px; }
+  .fx-topo[aria-expanded="true"] .fx-seta { transform: rotate(180deg); }
+  .ic-pino { display: inline-block; width: 10px; height: 14px; flex: none; }
+  .ic-pino svg { display: block; width: 100%; height: 100%; }
+  .fx-lista { max-height: 40vh; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 10px; padding: 4px 16px 14px; }
+  .fx { padding: 8px 10px 4px; background: #1b140d; box-shadow: inset 3px 0 0 var(--ember); }
+  .fx .rtexto { font-size: 20px; }
+  .rpe .botoes { display: flex; gap: 12px; }
+  .rpe .pino { display: inline-block; width: 8px; height: 11px; margin-left: 6px; vertical-align: -1px; }
+  .rpe .pino svg { display: block; width: 100%; height: 100%; }
+  .msg.fixada { box-shadow: 0 -3px 0 0 var(--ember), 0 3px 0 0 var(--ember), -3px 0 0 0 var(--ember), 3px 0 0 0 var(--ember), 0 6px 0 0 #000; }
+  /* stickers */
+  .msg.fig { background: none; box-shadow: none; padding: 16px 4px 0; text-align: center; }
+  .msg.fig .rnome { left: 4px; }
+  .msg.fig.meu .rnome { left: auto; right: 4px; }
+  .msg.fig img, .figs img { image-rendering: pixelated; image-rendering: crisp-edges; display: block; margin: 0 auto; }
+  .fig-legenda { margin-top: 4px; font-size: 20px; color: #d9ccb4; text-shadow: 2px 2px 0 #2a1d14; }
+  .fig-legenda.forte { font-family: "Silkscreen", monospace; font-size: 14px; color: #ffd36b; text-shadow: 2px 2px 0 #3a2410; }
+  .msg.fig .rpe { justify-content: center; }
+  #chat-figs-btn { flex: none; width: 42px; height: 42px; padding: 0; border: 0; cursor: pointer; background: #15100b; box-shadow: inset 0 0 0 3px var(--gold-dark); }
+  #chat-figs-btn svg { display: block; width: 22px; height: 19px; margin: 0 auto; }
+  #chat-figs-btn:hover, #chat-figs-btn:focus-visible, #chat-figs-btn[aria-expanded="true"] { background: #24170d; box-shadow: inset 0 0 0 3px var(--gold); outline: none; }
+  #chat-figs-btn:disabled { opacity: .4; cursor: default; }
+  .figs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; max-height: 42vh; overflow-y: auto; padding: 12px 16px; border-top: 3px solid #2a2018; background: #120d09; }
+  .figs button { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; min-height: 96px; padding: 6px 2px 4px; border: 0; background: none; cursor: pointer; }
+  .figs button:hover, .figs button:focus-visible { background: #24170d; outline: none; box-shadow: inset 0 0 0 2px var(--gold-dark); }
+  .figs .fig-legenda { font-size: 17px; margin: 0; }
+  .figs button { font-family: "VT323", monospace; }
+  .chat-lista, .fx-lista, .figs, .chat-envio textarea { scrollbar-width: thin; scrollbar-color: var(--gold-dark) #0e0b08; }
+  .chat-envio textarea { overflow-y: hidden; }
+  .figs .fig-legenda.forte { font-size: 11px; }
   @media (prefers-reduced-motion: reduce) { .chat-caixa, .msg.chegou, .contador { animation: none; } }
 
   @media (max-width: 420px) { a.botao::before { left: -26px; } }
@@ -479,10 +516,16 @@
       <div><b id="chat-titulo">CHAT DA FOGUEIRA</b><small>só na rede de casa</small></div>
       <button type="button" id="chat-fechar" aria-label="Fechar o chat">fechar ✕</button>
     </div>
+    <div class="chat-fixadas" id="chat-fixadas" hidden>
+      <button type="button" class="fx-topo" id="fx-topo" aria-expanded="false" aria-controls="fx-lista"><span class="ic-pino" aria-hidden="true"><svg viewBox="0 0 5 7" shape-rendering="crispEdges"><path fill="#ff5a1a" d="M1 0h3v3H1z"/><path fill="#ffa04d" d="M1 0h1v2H1z"/><path fill="#c4401a" d="M0 2h5v1H0z"/><path fill="#a89272" d="M2 3h1v4H2z"/></svg></span>FIXADAS <span id="fx-n"></span><span class="fx-previa" id="fx-previa"></span><span class="fx-seta" aria-hidden="true">▾</span></button>
+      <div class="fx-lista" id="fx-lista" hidden></div>
+    </div>
     <div class="chat-lista" id="chat-lista" aria-live="polite"></div>
     <p class="chat-aviso" id="chat-erro" hidden></p>
+    <div class="figs" id="chat-figs" hidden aria-label="Figurinhas"></div>
     <form class="chat-envio" id="chat-envio">
-      <textarea id="chat-texto" rows="1" maxlength="2000" placeholder="Escreva uma mensagem..." aria-label="Mensagem"></textarea>
+      <button type="button" id="chat-figs-btn" aria-label="Figurinhas" aria-expanded="false" aria-controls="chat-figs" title="Figurinhas"><svg viewBox="0 0 7 6" shape-rendering="crispEdges"><path fill="#e9a3a6" d="M0 1h1v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 1h1v1H6zM2 2h3v1h1v2H5v1H2V5H1V3h1z"/></svg></button>
+      <textarea id="chat-texto" rows="1" maxlength="2000" placeholder="Escreva aqui..." aria-label="Mensagem"></textarea>
       <button type="submit" id="chat-enviar">ENVIAR</button>
     </form>
   </div>
@@ -982,6 +1025,18 @@
       }
     }
     desenhar();
+
+    // a still portrait in a given pose for the chat stickers; the live sprite is restored right after
+    window.akaliRetrato = function (pose) {
+      var antes = { acordada: acordada, olhar: olhar, quadro: quadro, tapa: tapa, arrepio: arrepio };
+      acordada = !!pose.acordada; olhar = pose.olhar || { x: 0, y: 1 }; quadro = pose.quadro || 'base';
+      tapa = !!pose.tapa; arrepio = pose.arrepio || 0;
+      desenhar();
+      var k = document.createElement('canvas'); k.width = 34; k.height = 22; k.getContext('2d').drawImage(c, 0, 0);
+      acordada = antes.acordada; olhar = antes.olhar; quadro = antes.quadro; tapa = antes.tapa; arrepio = antes.arrepio;
+      desenhar();
+      return k;
+    };
 
     // browser tab icon with her face
     try {
@@ -1776,12 +1831,16 @@
     var desc = document.getElementById('chat-desc'), descPadrao = desc.textContent;
     var form = document.getElementById('chat-envio'), campo = document.getElementById('chat-texto');
     var enviar = document.getElementById('chat-enviar'), erro = document.getElementById('chat-erro');
+    var figsBtn = document.getElementById('chat-figs-btn'), figsBox = document.getElementById('chat-figs');
+    var fxCaixa = document.getElementById('chat-fixadas'), fxTopo = document.getElementById('fx-topo'), fxLista = document.getElementById('fx-lista');
     var pessoas = Object.keys(CFG.people || {});
     var CORES = ['#e0b45c', '#ff8fb1', '#8fd3f5', '#9fdc7c', '#c9a2ff'];
     var olho = '<svg viewBox="0 0 7 5" width="14" height="10" shape-rendering="crispEdges"><path fill="#a89272" d="M2 0h3v1h1v1h1v1H6v1H5v1H2V4H1V3H0V2h1V1h1z"/><path fill="#0e0b08" d="M2 1h3v1h1v1H5v1H2V3H1V2h1z"/><path fill="#8fd3f5" d="M3 1h1v3H3z"/></svg>';
-    var mensagens = [], lidos = {}, ultimo = 0, aberto = false, carregou = false, buscando = false, deNovo = false, timer = null;
-    var tituloBase = document.title, icone = document.querySelector('link[rel="icon"]'), iconeBase = icone && icone.href;
+    var pino = '<svg viewBox="0 0 5 7" shape-rendering="crispEdges"><path fill="#ff5a1a" d="M1 0h3v3H1z"/><path fill="#ffa04d" d="M1 0h1v2H1z"/><path fill="#c4401a" d="M0 2h5v1H0z"/><path fill="#a89272" d="M2 3h1v4H2z"/></svg>';
+    var mensagens = [], lidos = {}, fixadas = [], ultimo = 0, aberto = false, carregou = false, buscando = false, deNovo = false, timer = null;
+    var tituloBase = document.title, icone = document.querySelector('link[rel="icon"]'), iconeBase = null, iconePonto = null, avisando = 0;
     var toque = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    var fxAberta = false; try { fxAberta = localStorage.getItem('firelink.fixadasAbertas') === '1'; } catch (e) {}
 
     function eu() { return window.quemEsta && window.quemEsta(); }
     function cor(nome) { var i = pessoas.indexOf(nome); return CORES[(i < 0 ? 0 : i) % CORES.length]; }
@@ -1793,6 +1852,122 @@
       if (diaDe(t) === diaDe(ontem / 1000)) return 'ONTEM';
       return dois(d.getDate()) + '/' + dois(d.getMonth() + 1) + (d.getFullYear() !== hoje.getFullYear() ? '/' + d.getFullYear() : '');
     }
+    function hora(t) { var d = new Date(t * 1000); return dois(d.getHours()) + ':' + dois(d.getMinutes()); }
+    function criar(tag, cls, texto) { var e = document.createElement(tag); if (cls) e.className = cls; if (texto != null) e.textContent = texto; return e; }
+    function botao(cls, texto, acao) { var b = criar('button', cls, texto); b.type = 'button'; b.addEventListener('click', acao); return b; }
+    function ehFixada(id) { return fixadas.some(function (f) { return f.id === id; }); }
+
+    // ---------- stickers: drawn from the page's own sprites, and Akali also from photos of her ----------
+    var PAL = { W:'#f4f1ea', w:'#cdc6ba', B:'#2e221c', b:'#6e5242', c:'#8f6e58', f:'#c4a07e', T:'#3a2c22', t:'#56402f', u:'#7a5e48',
+                p:'#e9a3a6', E:'#8fd3f5', k:'#1b1512', n:'#e2b9b9', H:'#7a58b0', h:'#54398a', L:'#9a78d0', o:'#160f1c',
+                R:'#ff5a7a', r:'#d93a5e', l:'#ffb3c4' };
+    var GRADES = {
+      'capuz': [
+        "...........hhhhhhhh...........", "........hhhHHHHHHHHhhh........",
+        "......hhHHHLLLLLLLLHHHhh......", ".....hHHLLLLLLLLLLLLLLHHh.....",
+        "....hHLLLLLHHHHHHHHLLLLLHh....", "...hHLLLHHhoooooooohhHLLLHh...",
+        "...hHLLHhooooooooooooohHLLHh..", "..hHLLHhooBBBoooooooooohHLHh..",
+        "..hHLHhoBBBBBBWWWWWwooohHLLHh.", "..hHLHhBBBBBBBWWWWWWWwoohHLHh.",
+        "..hHLHoBBBBBBWWWWWWWWWwoohHLHh", "..hHLHoBBBBBWWWWWWWWWWWwohHLHh",
+        "..hHLHoBBEEBBWWWWWWEEWWwohHLHh", "..hHLHoBBEkBBWWWWWWEkWWWohHLHh",
+        "..hHLHoBBBBBWWWWWWWWWWWwohHLHh", "..hHLHowBBBWWWWWWppWWWWwohHLHh",
+        "..hHLHowWWWWWWWWWwwWWWwoohHLHh", "..hHLHhowWWWWWWWwWWwWWwohHLHh.",
+        "..hHLLHowwWWWWWWWWWWWwwohHLHh.", "..hHLLHhoowWWWWWWWWWwwoohHLHh.",
+        "...hHLLHooowWWWWWWWwwoohHLLHh.", "...hHLLHhooowWWWWWwoohhHLLHh..",
+        "...hHLLLHhoooWWWWwoohHLLLHh...", "....hHLLLHhhoWwWwWhhHLLLHh....",
+        ".....hhHHHHhhwWwWwhhHHHhh.....", "........hhhhhhhhhhhhhh........"
+      ],
+      'deitada': [
+        "..........................b.........b.", "..........................bb.......bb.",
+        "..........................bnb.....bnb.", "..........................bbbbbbbbbbb.",
+        "..........................bbbbbbbbbb..", ".........wffWWWWWWWWWWw...BBBBbbbbbW..",
+        ".......wffffffWWWWWWWWWWwWBBEEBWWEEWW.", ".....wWffffffffWWWWWWWWWWWBBEkBWWEkWW.",
+        "....wWWWWffffWWWWWWWWWWWWWWBBBWWWWWWw.", "...wWWWWWWWWWWWWWWWWWWWWWWWWWWWppWWW..",
+        "...wWWuuuuWWWWWWWWWWWWWWWWWWWWWwWWWw..", "...wWuuuuuuWWWWWWWWWWWWWWWWWWwwwwww...",
+        "...wWuuuuuuWWWWWWWWWWWWWWWWWw.........", "..TTWuuuuuuWWWWWWWWWWWWWWWWWw.........",
+        ".TTTTwuuWWWWWWWWWWWWWWWWWwwWWw........", "TTTTT..wWWWWWWWWWWWWWWWWw..wWw........",
+        "TTTT...wWWwwwwwwwwwwwwwWw...wWw.......", "TTT....wWw.............wWw..wWWw......",
+        "TTT....wWw.............wWw...wWw......", "TTT....BBw.............wWw....wWw.....",
+        "TTTT..wWWw..............wWw...www.....", "TTTTT..ww...............www...........",
+        ".TTTT................................."
+      ],
+      'barriga': [
+        "....ww...........wWWw...", "....wWw.........wWWnw...",
+        ".....wWw.wWWWWWWWWWww...", "......wWWWWWWWWWWWw.....",
+        "......wWWWWWWWWWWw......", "......wWWWWWWWWWWw......",
+        ".....wWWWWWWWWWWWWw.....", ".....wfffffffWWWWWw.....",
+        "....wfffffffffWWWWWw....", "....wfffffffffWWWWWw....",
+        "....wWfffffffWWWWWWw....", "....wWWWWWWWWWWWWWWw....",
+        "....wWWWWWWWWWWWWWWw....", "....wWWWWWWWWWWWWWWw..w.",
+        "....wWWWWWWWWWWWWWWWWWnw", "....wWWWWWWWWWWWWWWWWWww",
+        "....wWWWWWWWWWWWWWWWWw..", "....wWWWWWWWWWWWWWWww...",
+        "...wWWWWWWWWWWWWWWw.....", "..wWwwWWWWWWWWWWWWw.....",
+        "..ww..wWWWWWWWWWWw......", "......wWWWWWWWWWWw......",
+        ".......WWWWWWWWWW.......", "......WWWWWWwWWWWW......",
+        "......WWWWWWppWWWW......", "......WWBBWWWWWWWW......",
+        "......WBBBBWWWWWWW......", "......WBBEEWWWEEWW......",
+        "......WBBkEWWWkEWW......", "......bWbbbbbbbbW.b.....",
+        "......bb.bbbbbb..bb.....", "......bnb.......bnb.....",
+        "......bb.........bb.....", "......b...........b....."
+      ],
+      'coracao': [".RR.RR.", "RlRRRRR", "RRRRRRr", ".RRRRr.", "..RRr..", "...r..."],
+      'pata': ["..p.p..", "p.....p", "..ppp..", ".ppppp.", ".ppppp.", "..ppp.."]
+    };
+    function grade(g) {
+      var k = document.createElement('canvas'); k.width = g[0].length; k.height = g.length; var x = k.getContext('2d');
+      g.forEach(function (l, y) { for (var i = 0; i < l.length; i++) if (PAL[l[i]]) { x.fillStyle = PAL[l[i]]; x.fillRect(i, y, 1, 1); } });
+      return k;
+    }
+    function copia(id) {
+      var o = document.getElementById(id); if (!o || !o.width) return null;
+      var k = document.createElement('canvas'); k.width = o.width; k.height = o.height; k.getContext('2d').drawImage(o, 0, 0); return k;
+    }
+    function akali(pose) { return window.akaliRetrato ? window.akaliRetrato(pose) : null; }
+    function ronrona() {
+      var a = akali({ acordada: true, olhar: { x: 1, y: 1 } }); if (!a) return null;
+      var k = document.createElement('canvas'); k.width = 34; k.height = 29; var x = k.getContext('2d'), h = grade(GRADES.coracao);
+      x.drawImage(a, 0, 7); x.drawImage(h, 13, 0); x.drawImage(h, 22, 2);
+      return k;
+    }
+    // [id, caption, strong caption?, how to draw]
+    var FIGS = [
+      ['akali-dormindo', 'zzz...', false, function () { return akali({}); }],
+      ['akali-ronrona', 'rrrrr...', false, ronrona],
+      ['akali-tapa', 'PÁ!', true, function () { return akali({ acordada: true, tapa: true, olhar: { x: 0, y: 1 } }); }],
+      ['akali-arrepiada', 'Hsss!', true, function () { return akali({ arrepio: 1 }); }],
+      ['akali-capuz', 'Mel...', false, function () { return grade(GRADES.capuz); }],
+      ['akali-deitada', 'Hm?', false, function () { return grade(GRADES.deitada); }],
+      ['akali-barriga', 'armadilha!', true, function () { return grade(GRADES.barriga); }],
+      ['guardia', 'Descanse.', false, function () { return copia('guardia'); }],
+      ['fogueira', 'Fogo aceso!', false, function () { return copia('fogo'); }],
+      ['coracao', '', false, function () { return grade(GRADES.coracao); }],
+      ['pata', '', false, function () { return grade(GRADES.pata); }]
+    ];
+    var cacheFig = {};
+    function infoFig(id) { return FIGS.filter(function (f) { return f[0] === id; })[0]; }
+    function imgFig(id, maxW, maxH, teto) {        // whole-number scale so the pixels stay square
+      var f = infoFig(id); if (!f) return null;
+      if (!cacheFig[id]) { var k = null; try { k = f[3](); } catch (e) {} if (!k) return null; cacheFig[id] = { url: k.toDataURL('image/png'), w: k.width, h: k.height }; }
+      var c = cacheFig[id], e = Math.max(1, Math.min(teto, Math.floor(Math.min(maxW / c.w, maxH / c.h))));
+      var img = new Image(); img.src = c.url; img.width = c.w * e; img.height = c.h * e; img.alt = f[1] || id; img.draggable = false;
+      return img;
+    }
+    function legenda(id) { var f = infoFig(id); return f && f[1] ? criar('div', 'fig-legenda' + (f[2] ? ' forte' : ''), f[1]) : null; }
+    function montarFigs() {
+      figsBox.innerHTML = '';
+      FIGS.forEach(function (f) {
+        var b = botao('', null, function () { mandar({ figurinha: f[0] }); fecharFigs(); });
+        b.setAttribute('aria-label', f[1] ? 'Figurinha: ' + f[1] : 'Figurinha: ' + f[0]);
+        var img = imgFig(f[0], 80, 70, 6); if (img) b.appendChild(img);
+        var l = legenda(f[0]); if (l) b.appendChild(l);
+        figsBox.appendChild(b);
+      });
+    }
+    function fecharFigs() { figsBox.hidden = true; figsBtn.setAttribute('aria-expanded', 'false'); }
+    figsBtn.addEventListener('click', function () {
+      if (!figsBox.hidden) return fecharFigs();
+      montarFigs(); figsBox.hidden = false; figsBtn.setAttribute('aria-expanded', 'true');
+    });
 
     // text with clickable links, built as DOM nodes (never as HTML)
     function comLinks(el, texto) {
@@ -1819,30 +1994,71 @@
       }
     }
 
+    // ---------- pinned messages ----------
+    function fixar(id, fixa) {
+      var quem = eu(); if (!quem) return;
+      fetch('api/chat/fixar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quem: quem, id: id, fixa: fixa }) })
+        .then(function (r) {
+          if (r.status === 409) throw { nossa: true, message: 'Já há 12 mensagens fixadas. Desafixe alguma antes.' };
+          if (!r.ok) throw { nossa: true, message: 'A guardiã não conseguiu ' + (fixa ? 'fixar' : 'desafixar') + ' a mensagem.' };
+          return r.json();
+        })
+        .then(function (d) { fixadas = d.fixadas || []; erro.hidden = true; desenharFixadas(); desenhar(); })
+        .catch(function (e) { erro.textContent = e.nossa ? e.message : 'Sem conexão com o firelink. Tente de novo.'; erro.hidden = false; });
+    }
+    function desenharFixadas() {
+      fxCaixa.hidden = !fixadas.length;
+      if (!fixadas.length) { fxLista.hidden = true; return; }
+      document.getElementById('fx-n').textContent = '· ' + fixadas.length;
+      document.getElementById('fx-previa').textContent = fixadas[0].texto.replace(/\s+/g, ' ');
+      fxTopo.setAttribute('aria-expanded', fxAberta ? 'true' : 'false'); fxLista.hidden = !fxAberta;
+      fxLista.innerHTML = '';
+      fixadas.forEach(function (f) {
+        var el = criar('div', 'fx'), texto = criar('div', 'rtexto'); comLinks(texto, f.texto);
+        var pe = criar('div', 'rpe'), bs = criar('span', 'botoes');
+        pe.appendChild(criar('span', null, f.quem + ' · ' + nomeDoDia(f.t).toLowerCase() + (f.por && f.por !== f.quem ? ' · fixada por ' + f.por : '')));
+        var cp = botao('rcopiar', 'copiar', function () { copiar(f.texto, cp); });
+        bs.appendChild(cp); bs.appendChild(botao('rcopiar', 'desafixar', function () { fixar(f.id, false); }));
+        pe.appendChild(bs); el.appendChild(texto); el.appendChild(pe); fxLista.appendChild(el);
+      });
+    }
+    fxTopo.addEventListener('click', function () {
+      fxAberta = !fxAberta; try { localStorage.setItem('firelink.fixadasAbertas', fxAberta ? '1' : '0'); } catch (e) {}
+      desenharFixadas();
+    });
+
+    // ---------- the conversation ----------
     function desenhar(chegaram) {
       var perto = lista.scrollHeight - lista.scrollTop - lista.clientHeight < 80;
       lista.innerHTML = '';
       var quem = eu();
-      if (!mensagens.length) {
-        var v = document.createElement('p'); v.className = 'rvazio';
-        v.textContent = 'Nenhuma mensagem ainda. A chama guarda o que você escrever aqui.';
-        lista.appendChild(v);
-      }
+      if (!mensagens.length) lista.appendChild(criar('p', 'rvazio', 'Nenhuma mensagem ainda. A chama guarda o que você escrever aqui.'));
       var dia = null;
       mensagens.forEach(function (r) {
         var d = diaDe(r.t);
-        if (d !== dia) { dia = d; var sep = document.createElement('div'); sep.className = 'rdia'; sep.textContent = '— ' + nomeDoDia(r.t) + ' —'; lista.appendChild(sep); }
-        var el = document.createElement('div');
-        el.className = 'msg' + (r.quem === quem ? ' meu' : '') + (Array.isArray(chegaram) && chegaram.indexOf(r.id) >= 0 ? ' chegou' : '');
+        if (d !== dia) { dia = d; lista.appendChild(criar('div', 'rdia', '— ' + nomeDoDia(r.t) + ' —')); }
+        var fig = !!r.figurinha, presa = !fig && ehFixada(r.id);
+        var el = criar('div', 'msg' + (r.quem === quem ? ' meu' : '') + (fig ? ' fig' : '') + (presa ? ' fixada' : '') +
+                       (Array.isArray(chegaram) && chegaram.indexOf(r.id) >= 0 ? ' chegou' : ''));
         el.style.setProperty('--cor', cor(r.quem));
-        var nome = document.createElement('span'); nome.className = 'rnome'; nome.textContent = r.quem;
-        var texto = document.createElement('div'); texto.className = 'rtexto'; comLinks(texto, r.texto);
-        var pe = document.createElement('div'); pe.className = 'rpe';
-        var hora = document.createElement('span'); var dt = new Date(r.t * 1000); hora.textContent = dois(dt.getHours()) + ':' + dois(dt.getMinutes());
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'rcopiar'; b.textContent = 'copiar';
-        b.addEventListener('click', function () { copiar(r.texto, b); });
-        pe.appendChild(hora); pe.appendChild(b);
-        el.appendChild(nome); el.appendChild(texto); el.appendChild(pe);
+        el.appendChild(criar('span', 'rnome', r.quem));
+        if (fig) {
+          var img = imgFig(r.figurinha, 120, 104, 8);
+          if (img) el.appendChild(img); else el.appendChild(criar('div', 'rtexto', '(figurinha)'));
+          var l = legenda(r.figurinha); if (l) el.appendChild(l);
+        } else {
+          var texto = criar('div', 'rtexto'); comLinks(texto, r.texto || ''); el.appendChild(texto);
+        }
+        var pe = criar('div', 'rpe'), h = criar('span', null, hora(r.t));
+        if (presa) { var pn = criar('span', 'pino'); pn.innerHTML = pino; pn.title = 'fixada'; h.appendChild(pn); }
+        pe.appendChild(h);
+        if (!fig) {
+          var bs = criar('span', 'botoes');
+          bs.appendChild(botao('rcopiar', presa ? 'desafixar' : 'fixar', function () { fixar(r.id, !presa); }));
+          var cp = botao('rcopiar', 'copiar', function () { copiar(r.texto, cp); }); bs.appendChild(cp);
+          pe.appendChild(bs);
+        }
+        el.appendChild(pe);
         lista.appendChild(el);
       });
       // "seen": under my last message, who else has already read it
@@ -1850,11 +2066,7 @@
       var ult = meus[meus.length - 1];
       if (ult && ult === mensagens[mensagens.length - 1]) {
         var viram = Object.keys(lidos).filter(function (n) { return n !== quem && lidos[n] >= ult.id; });
-        if (viram.length) {
-          var vi = document.createElement('div'); vi.className = 'rvisto';
-          vi.innerHTML = olho; vi.appendChild(document.createTextNode('visto por ' + viram.join(' e ')));
-          lista.appendChild(vi);
-        }
+        if (viram.length) { var vi = criar('div', 'rvisto'); vi.innerHTML = olho; vi.appendChild(document.createTextNode('visto por ' + viram.join(' e '))); lista.appendChild(vi); }
       }
       if (perto || chegaram === true) lista.scrollTop = lista.scrollHeight;
     }
@@ -1864,12 +2076,29 @@
       var ate = lidos[quem] || 0;
       return mensagens.filter(function (r) { return r.quem !== quem && r.id > ate; }).length;
     }
+    // favicon: the page swaps it for Akali's face (a PNG), so the red dot is painted over that picture
+    function iconeAviso(n) {
+      if (!icone) return;
+      if (!iconeBase) iconeBase = icone.href;
+      avisando = n;
+      if (!n) { icone.href = iconeBase; return; }
+      if (iconePonto) { icone.href = iconePonto; return; }
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var k = document.createElement('canvas'); k.width = k.height = 56; var g = k.getContext('2d'); g.imageSmoothingEnabled = false;
+          g.drawImage(img, 0, 0, 56, 56); g.fillStyle = '#1b0e05'; g.fillRect(32, 0, 24, 24); g.fillStyle = '#ff3b3b'; g.fillRect(35, 3, 18, 18);
+          iconePonto = k.toDataURL('image/png'); if (avisando) icone.href = iconePonto;
+        } catch (e) {}
+      };
+      img.src = iconeBase;
+    }
     function avisar() {
       var n = aberto ? 0 : naoLidos();
       contador.hidden = !n; contador.textContent = n > 9 ? '9+' : n;
       desc.textContent = n ? (n === 1 ? 'Há 1 mensagem nova para você' : 'Há ' + n + ' mensagens novas para você') : descPadrao;
       document.title = n ? '(' + n + ') ' + tituloBase : tituloBase;
-      if (icone && iconeBase) icone.href = n ? iconeBase.replace('</svg>', "<rect x='5' y='0' width='3' height='3' fill='%23ff3b3b'/></svg>") : iconeBase;
+      if (n !== avisando) iconeAviso(n);
     }
     function marcarLido() {
       var quem = eu(); if (!quem || !aberto || document.hidden || !ultimo || (lidos[quem] || 0) >= ultimo) return;
@@ -1883,8 +2112,9 @@
       var deles = novos.filter(function (r) { return r.quem !== quem; });
       if (!deles.length) return;
       var autores = deles.map(function (r) { return r.quem; }).filter(function (n, i, a) { return a.indexOf(n) === i; });
-      var t = autores.length === 1 ? autores[0] + ' mandou ' + (deles.length === 1 ? 'uma mensagem' : deles.length + ' mensagens') + ' no chat.'
-                                   : 'Chegaram mensagens novas no chat, ' + quem + '.';
+      var t = autores.length > 1 ? 'Chegaram mensagens novas no chat, ' + quem + '.'
+            : deles.length === 1 ? autores[0] + (deles[0].figurinha ? ' mandou uma figurinha no chat.' : ' mandou uma mensagem no chat.')
+            : autores[0] + ' mandou ' + deles.length + ' mensagens no chat.';
       if (window.akaliFala) window.akaliFala(t, 'Guardiã da Chama');
       var r = abrirBtn.getBoundingClientRect();
       if (window.akaliOlhar) window.akaliOlhar(r.left + r.width / 2, r.top + r.height / 2);
@@ -1896,17 +2126,19 @@
       fetch('api/chat?desde=' + ultimo, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
         var novos = (d.mensagens || []).filter(function (r) { return r.id > ultimo; });
         var vistoMudou = JSON.stringify(d.lidos || {}) !== JSON.stringify(lidos);
+        var fxMudou = JSON.stringify(d.fixadas || []) !== JSON.stringify(fixadas);
         // never move my own read mark backwards while the POST is on its way
         var quem = eu(), meu = lidos[quem] || 0;
         lidos = d.lidos || {}; if (quem && meu > (lidos[quem] || 0)) lidos[quem] = meu;
+        if (fxMudou) { fixadas = d.fixadas || []; desenharFixadas(); }
         if (novos.length) { mensagens = mensagens.concat(novos).slice(-500); ultimo = novos[novos.length - 1].id; }
-        if (aberto && (novos.length || vistoMudou || !carregou)) desenhar(carregou ? novos.map(function (r) { return r.id; }) : true);
+        if (aberto && (novos.length || vistoMudou || fxMudou || !carregou)) desenhar(carregou ? novos.map(function (r) { return r.id; }) : true);
         if (carregou) anunciar(novos);
         else if (naoLidos()) setTimeout(function () {             // after the keeper's greeting
           var n = naoLidos(); if (n && !aberto && window.akaliFala)
             window.akaliFala(n === 1 ? 'Há uma mensagem esperando por você no chat, ' + eu() + '.' : 'Há ' + n + ' mensagens esperando por você no chat, ' + eu() + '.', 'Guardiã da Chama');
         }, 5000);
-        carregou = true; marcarLido(); avisar(); erro.hidden = true;
+        carregou = true; marcarLido(); avisar();
       }).catch(function () {}).then(function () {
         buscando = false;
         if (deNovo) { deNovo = false; buscar(); } else agendar();
@@ -1920,43 +2152,48 @@
       if (aberto) return;
       aberto = true; painel.hidden = false; document.body.style.overflow = 'hidden';
       if (!semHistorico) try { history.pushState({ chat: 1 }, '', '#chat'); } catch (e) {}
-      prontoParaEscrever(); desenhar(true); marcarLido(); avisar();
+      prontoParaEscrever(); desenharFixadas(); desenhar(true); marcarLido(); avisar();
       if (!toque && eu()) campo.focus();
     }
     function fechar(doHistorico) {
       if (!aberto) return;
-      aberto = false; painel.hidden = true; document.body.style.overflow = '';
+      aberto = false; painel.hidden = true; document.body.style.overflow = ''; fecharFigs();
       if (!doHistorico) { if (history.state && history.state.chat) history.back(); else try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
       avisar(); abrirBtn.focus();
     }
     abrirBtn.addEventListener('click', function (ev) { ev.preventDefault(); abrir(); });
     document.getElementById('chat-fechar').addEventListener('click', function () { fechar(); });
     painel.addEventListener('click', function (ev) { if (ev.target === painel) fechar(); });
-    addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && aberto) fechar(); });
+    addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && aberto) { if (!figsBox.hidden) fecharFigs(); else fechar(); } });
     addEventListener('popstate', function () { if (aberto && !(history.state && history.state.chat)) fechar(true); else if (!aberto && location.hash === '#chat') abrir(true); });
 
     function prontoParaEscrever() {
       var quem = eu();
-      campo.disabled = enviar.disabled = !quem;
-      campo.placeholder = quem ? 'Escreva uma mensagem, ' + quem + '...' : 'Diga à guardiã quem você é para escrever.';
+      campo.disabled = enviar.disabled = figsBtn.disabled = !quem;
+      campo.placeholder = quem ? 'Escreva aqui...' : 'Diga à guardiã quem você é.';
+      if (!quem) fecharFigs();
     }
-    function crescer() { campo.style.height = '42px'; campo.style.height = Math.min(campo.scrollHeight, 150) + 'px'; }
+    function crescer() { campo.style.height = '42px'; campo.style.height = Math.min(campo.scrollHeight, 150) + 'px'; campo.style.overflowY = campo.scrollHeight > 150 ? 'auto' : 'hidden'; }
     campo.addEventListener('input', crescer);
     campo.addEventListener('keydown', function (ev) {      // Enter sends, Shift+Enter breaks the line (on a phone Enter is a line break)
       if (ev.key === 'Enter' && !ev.shiftKey && !toque && !ev.isComposing) { ev.preventDefault(); form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true })); }
     });
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var quem = eu(), texto = campo.value.trim();
-      if (!quem || !texto || enviar.disabled) return;
-      enviar.disabled = true;
-      fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quem: quem, texto: texto }) })
+    var enviando = false;
+    function mandar(corpo, depois) {
+      var quem = eu(); if (!quem || enviando) return;
+      enviando = true; enviar.disabled = true; corpo.quem = quem;
+      fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
         .then(function (r) {
-          if (!r.ok) { var e = new Error(r.status === 429 ? 'Calma, uma mensagem de cada vez.' : 'A guardiã não conseguiu guardar a mensagem.'); e.nossa = true; throw e; }
-          campo.value = ''; crescer(); erro.hidden = true; lista.scrollTop = lista.scrollHeight; buscar();
+          if (!r.ok) throw { nossa: true, message: r.status === 429 ? 'Calma, uma mensagem de cada vez.' : 'A guardiã não conseguiu guardar a mensagem.' };
+          erro.hidden = true; if (depois) depois(); lista.scrollTop = lista.scrollHeight; buscar();
         })
         .catch(function (e) { erro.textContent = e.nossa ? e.message : 'Sem conexão com o firelink. Tente de novo.'; erro.hidden = false; })
-        .then(function () { enviar.disabled = false; if (!toque) campo.focus(); });
+        .then(function () { enviando = false; enviar.disabled = !eu(); if (!toque) campo.focus(); });
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var texto = campo.value.trim(); if (!texto) return;
+      mandar({ texto: texto }, function () { campo.value = ''; crescer(); });
     });
     // whoever is at the fire may change ("não é você?")
     document.getElementById('opcoes').addEventListener('click', function () { setTimeout(function () { prontoParaEscrever(); avisar(); if (aberto) desenhar(); }, 50); });
