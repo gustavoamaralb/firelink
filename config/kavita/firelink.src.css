@@ -1,0 +1,455 @@
+/* Firelink - Kavita theme (v0.9.1.4).
+   Dracula sitting by the bonfire: Dracula palette on a crypt-black base,
+   with Dracula orange (#FFB86C) as the ember accent and Dracula purple
+   (#BD93F9) as the secondary one. Headings in Cinzel; the FIRELINK
+   wordmark in Silkscreen beside the home page's bonfire (8 frames
+   captured from its canvas); Akali (the house
+   cat, original pixel art from the home page) asleep at the foot of the
+   side menu. Fonts and art are embedded at build.
+   Written against the variables of Kavita's default theme; palette from
+   Dracula (draculatheme.com). Fonts: SIL Open Font License, see
+   fonts-licenses/.
+   Build: config/kavita/build.sh -> firelink.css (upload in Kavita:
+   Settings -> Theme -> upload). Every rule is scoped to .bg-firelink,
+   because Kavita keeps a theme's stylesheet loaded after switching away.
+ */
+@font-face {
+    font-family: "Cinzel Firelink";
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+    src: url(data:font/woff2;base64,@@CINZEL@@) format("woff2");
+}
+
+@font-face {
+    font-family: "Silkscreen Firelink";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url(data:font/woff2;base64,@@SILKSCREEN@@) format("woff2");
+}
+
+:root .bg-firelink {
+    --fl-fogueira: url(data:image/png;base64,@@FOGUEIRA@@);
+    --fl-fogueira-parada: url(data:image/png;base64,@@FOGUEIRA_PARADA@@);
+    --fl-akali: url(data:image/png;base64,@@AKALI@@);
+
+    /* Palette */
+    --fl-crypt: #16131c;        /* page background */
+    --fl-stone: #1e1a25;        /* sunken surfaces */
+    --fl-stone-2: #262030;      /* cards, menus */
+    --fl-stone-3: #322a3e;      /* raised / hover */
+    --fl-bone: #e8e2d4;         /* text */
+    --fl-ash: #a39b8c;          /* muted text */
+    --fl-ember: #ffb86c;        /* Dracula orange */
+    --fl-ember-2: #f0994a;
+    --fl-ember-3: #c96f2e;
+    --fl-ember-4: #8a4a1f;
+    --fl-blood: #ff5555;        /* Dracula red */
+    --fl-violet: #bd93f9;       /* Dracula purple */
+    --fl-bronze: rgba(201, 160, 99, .28);   /* thin gilded rules */
+    --fl-bronze-strong: rgba(214, 172, 108, .55);
+    --fl-glow: 0 0 .9rem rgba(255, 150, 60, .28);
+
+    /* Main */
+    --color-scheme: dark;
+    --primary-color: var(--fl-ember);
+    --primary-color-dark-shade: var(--fl-ember-2);
+    --primary-color-darker-shade: var(--fl-ember-3);
+    --primary-color-darkest-shade: var(--fl-ember-4);
+    --error-color: #c43c3c;
+    --error-accent-color: var(--fl-blood);
+    --warning-color: #f1c47b;
+    --info-color: var(--fl-violet);
+    --success-color: #50fa7b;
+    --bs-body-bg: var(--fl-crypt);
+    --body-text-color: var(--fl-bone);
+    --text-muted-color: rgba(232, 226, 212, .5);
+    --offwhite-text-color: var(--fl-ash);
+    --theme-color: #16131c;
+    --tile-color: #16131c;
+    --primary-color-scrollbar: rgba(255, 184, 108, .45);
+
+    /* Elevation: purple-tinted instead of neutral grey */
+    --elevation-layer0-dark-solid: #14111a;
+    --elevation-layer1-dark-solid: #1b1722;
+    --elevation-layer2-dark-solid: #1f1a27;
+    --elevation-layer3-dark-solid: #231e2c;
+    --elevation-layer4-dark-solid: #262030;
+    --elevation-layer5-dark-solid: #2a2335;
+    --elevation-layer6-dark-solid: #2c2538;
+    --elevation-layer7-dark-solid: #30293c;
+    --elevation-layer8-dark-solid: #332b40;
+    --elevation-layer9-dark-solid: #362e44;
+
+    /* Colorscape (series pages tint the background from the cover) is
+       off: a green Berserk or blue Batman page would break the crypt. */
+    --colorscape-enabled: false;
+    --colorscape-primary-default-color: rgb(30, 26, 37);
+    --colorscape-lighter-default-color: rgb(26, 22, 32);
+    --colorscape-darker-default-color: rgb(20, 17, 26);
+    --colorscape-complementary-default-color: rgb(58, 36, 30);
+    --colorscape-primary-color: rgb(30, 26, 37);
+    --colorscape-lighter-color: rgb(26, 22, 32);
+    --colorscape-darker-color: rgb(20, 17, 26);
+    --colorscape-complementary-color: rgb(58, 36, 30);
+
+    /* Navbar */
+    --navbar-bg-color: #110e16;
+    --navbar-text-color: var(--fl-bone);
+    --navbar-fa-icon-color: var(--fl-bone);
+    --navbar-btn-hover-outline-color: var(--fl-ember);
+    --searchbar-bg-color: rgba(232, 226, 212, .07);
+
+    /* Side nav */
+    --side-nav-bg-color: rgba(30, 26, 37, .85);
+    --side-nav-mobile-bg-color: #1b1722;
+    --side-nav-hover-text-color: var(--fl-ember);
+    --side-nav-hover-bg-color: rgba(255, 184, 108, .08);
+    --side-nav-text-color: rgba(232, 226, 212, .82);
+    --side-nav-header-text-color: var(--fl-bone);
+    --side-nav-item-active-color: var(--fl-ember);
+    --side-nav-item-active-text-color: var(--fl-ember);
+    --side-nav-active-bg-color: rgba(255, 184, 108, .1);
+    --side-nav-overlay-color: rgba(10, 8, 14, .7);
+    --side-nav-item-color: rgba(255, 184, 108, .06);
+    --side-nav-item-closed-color: var(--fl-ash);
+    --side-nav-item-closed-hover-color: var(--fl-ember);
+    --pref-side-nav-header-text-color: var(--fl-ember);
+
+    /* Inputs */
+    --input-bg-color: #221d2b;
+    --input-bg-readonly-color: #2a2335;
+    --input-focused-border-color: var(--fl-ember-3);
+    --input-text-color: var(--fl-bone);
+    --input-placeholder-color: rgba(232, 226, 212, .45);
+    --input-border-color: rgba(201, 160, 99, .3);
+    --input-focus-boxshadow-color: rgba(255, 184, 108, .35);
+    --input-hint-border-color: rgba(201, 160, 99, .4);
+    --input-hint-text-color: var(--fl-ash);
+
+    /* Buttons: dark text on ember reads better than white */
+    --btn-focus-boxshadow-color: rgba(255, 184, 108, .45);
+    --btn-primary-text-color: #1a1208;
+    --btn-primary-bg-color: var(--fl-ember);
+    --btn-primary-border-color: var(--fl-ember);
+    --btn-primary-hover-text-color: #1a1208;
+    --btn-primary-hover-bg-color: var(--fl-ember-2);
+    --btn-primary-hover-border-color: var(--fl-ember-2);
+    --btn-outline-primary-text-color: var(--fl-ember);
+    --btn-primary-text-text-color: var(--fl-ember);
+    --btn-primary-text-hover-color: var(--fl-ember-2);
+    --btn-secondary-bg-color: #3a3247;
+    --btn-secondary-border-color: #3a3247;
+    --btn-secondary-text-color: var(--fl-bone);
+    --btn-secondary-text-text-color: var(--fl-ash);
+    --btn-alt-bg-color: #3a2f4f;
+    --btn-alt-border-color: #45385d;
+    --btn-alt-hover-bg-color: #45385d;
+    --btn-alt-focus-bg-color: #2f2640;
+    --btn-alt-focus-boxshadow-color: rgba(189, 147, 249, .45);
+    --btn-fa-icon-color: var(--fl-bone);
+    --btn-disabled-bg-color: #262030;
+    --btn-disabled-text-color: var(--fl-ash);
+    --btn-disabled-border-color: #3a3247;
+    --btn-actions-hover-bg: rgba(255, 184, 108, .14);
+
+    /* Tabs / nav */
+    --nav-tab-border-color: rgba(255, 184, 108, .5);
+    --nav-tab-text-color: var(--fl-ash);
+    --nav-tab-hover-border-color: var(--fl-ember);
+    --nav-tab-active-text-color: var(--fl-ember);
+    --nav-tab-hover-text-color: var(--fl-bone);
+    --nav-tab-border-bottom: var(--fl-ember);
+    --nav-tab-hover-border-bottom: var(--fl-ember);
+    --nav-link-bg-color: var(--fl-ember);
+    --nav-link-active-text-color: #1a1208;
+    --nav-link-text-color: var(--fl-ash);
+    --nav-header-text-color: var(--fl-bone);
+    --nav-header-bg-color: #1b1722;
+
+    /* Modals, drawers, popovers, dropdowns */
+    --modal-bg-color: #1e1a25;
+    --modal-footer-bg-color: #221d2b;
+    --modal-footer-border-top-color: var(--fl-bronze);
+    --modal-body-bg-color: #1e1a25;
+    --drawer-bg-color: #1e1a25;
+    --drawer-text-color: var(--fl-bone);
+    --popover-body-bg-color: #262030;
+    --popover-body-text-color: var(--fl-bone);
+    --popover-bg-color: #110e16;
+    --popover-border-color: #110e16;
+    --dropdown-item-hover-text-color: #1a1208;
+    --dropdown-item-hover-bg-color: var(--fl-ember-2);
+    --dropdown-item-text-color: var(--fl-bone);
+    --dropdown-item-bg-color: #262030;
+    --tooltip-outline-color: var(--fl-bronze-strong);
+
+    /* Toasts */
+    --toast-success-bg-color: rgba(60, 140, 80, .95);
+    --toast-error-bg-color: #b33636;
+    --toast-info-bg-color: #6d55a3;
+    --toast-warning-bg-color: #c97a2e;
+
+    /* Checkboxes, radios, ranges */
+    --checkbox-checked-bg-color: var(--fl-ember);
+    --checkbox-border-color: rgba(201, 160, 99, .45);
+    --checkbox-focus-border-color: var(--fl-ember);
+    --checkbox-focus-boxshadow-color: rgba(255, 184, 108, .35);
+    --radio-accent-color: var(--fl-ember);
+    --radio-hover-accent-color: var(--fl-ember);
+    --radio-focus-boxshadow-color: rgba(255, 184, 108, .35);
+
+    /* Tags / badges */
+    --tagbadge-border-color: var(--fl-bronze);
+    --tagbadge-text-color: var(--fl-bone);
+    --tagbadge-filled-border-color: var(--fl-bronze);
+    --tagbadge-filled-text-color: #1a1208;
+    --tagbadge-filled-bg-color: var(--fl-ember);
+    --tagbadge-pill-hover-bg-color: rgba(255, 184, 108, .14);
+    --label-card-icon-color: var(--fl-ember);
+    --label-card-bg: rgba(232, 226, 212, .035);
+    --label-card-border: var(--fl-bronze);
+
+    /* Lists, tables */
+    --list-group-item-border-color: rgba(201, 160, 99, .14);
+    --list-group-hover-bg-color: #262030;
+    --search-list-group-item-bg-color: #221d2b;
+    --table-header-bg-color: rgba(0, 0, 0, .25);
+    --setting-header-text-color: var(--fl-ember);
+    --setting-break-color: var(--fl-bronze);
+    --hr-color: var(--fl-bronze);
+
+    /* Pagination */
+    --pagination-active-link-text-color: #1a1208;
+    --pagination-link-border-color: var(--fl-bronze);
+    --pagination-link-bg-color: rgba(10, 8, 14, .5);
+
+    /* Progress: the ember */
+    --progress-bg-color: #221d2b;
+    --progress-bar-color: var(--fl-ember-2);
+    --progress-striped-animated-color: linear-gradient(45deg, rgba(255,184,108,.8) 25%, rgba(201,111,46,.8) 25%, rgba(201,111,46,.8) 50%, rgba(255,184,108,.8) 50%, rgba(255,184,108,.8) 75%, rgba(201,111,46,.8) 75%, rgba(201,111,46,.8));
+    --card-progress-bar-color: var(--fl-ember);
+
+    /* Accordion */
+    --accordion-surface-bg-color: #1e1a25;
+    --accordion-border-hover-color: var(--fl-bronze-strong);
+    --breadcrumb-bg-color: #1e1a25;
+
+    /* Ratings */
+    --ratingstar-color: var(--fl-violet);
+    --rating-star-color: var(--fl-ember);
+    --ratingstar-star-empty: #4a4058;
+    --ratingstar-star-filled: var(--fl-ember);
+    --review-card-star-color: var(--fl-ember);
+
+    /* Cards: old stone with a bronze hairline */
+    --card-bg-color: #221d2b;
+    --card-border-width: 1px;
+    --card-border-style: solid;
+    --card-border-color: rgba(201, 160, 99, .16);
+    --card-overlay-hover-bg-color: rgba(22, 19, 28, .55);
+    --card-hover-bg-color: #2c2538;
+    --card-body-bg-color: rgba(14, 11, 18, .78);
+
+    /* Readers */
+    --manga-reader-overlay-bg-color: rgba(14, 11, 18, .7);
+    --manga-reader-overlay-text-color: var(--fl-bone);
+    --manga-reader-next-highlight-bg-color: rgba(255, 184, 108, .35);
+    --manga-reader-prev-highlight-bg-color: rgba(189, 147, 249, .35);
+
+    /* Event widget, bulk bar */
+    --event-widget-bg-color: #14111a;
+    --event-widget-item-bg-color: #1b1722;
+    --event-widget-item-border-color: var(--fl-bronze);
+    --event-widget-info-bg-color: var(--fl-violet);
+    --bulk-selection-bg-color: #110e16;
+    --bulk-selection-highlight-text-color: var(--fl-ember);
+
+    /* Details page */
+    --detail-title-color: var(--fl-bone);
+    --detail-subtitle-color: var(--fl-ash);
+    --file-path-color: var(--fl-ash);
+
+    /* Login */
+    --login-card-bg-color: #1b1722;
+    --login-card-border-color: var(--fl-ember);
+    --login-input-background-color: #262030;
+    --login-input-box-shadow-focus: 0 0 0 .0625rem rgba(255, 184, 108, .8);
+    --login-background-color: #0c0a10;
+    --login-logo-image: var(--fl-fogueira-parada);
+
+    /* Charts (stats page) in Dracula colours */
+    --charts-palette1: #ffb86c;
+    --charts-palette2: #bd93f9;
+    --charts-palette3: #ff79c6;
+    --charts-palette4: #ff5555;
+    --charts-palette5: #8be9fd;
+    --charts-palette6: #50fa7b;
+    --charts-palette7: #f1fa8c;
+
+    /* Format pills */
+    --media-format-pill-comic-color: var(--fl-ember);
+    --media-format-pill-book-color: var(--fl-violet);
+    --media-format-pill-manga-color: #ff79c6;
+}
+
+/* ---------- Atmosphere: vignette + a faint bonfire glow from below ---------- */
+.bg-firelink body {
+    background-color: var(--fl-crypt);
+    background-image:
+        radial-gradient(ellipse 80% 45% at 50% 108%, rgba(255, 140, 50, .10), transparent 70%),
+        radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, .55) 100%);
+    background-attachment: fixed;
+}
+
+/* ---------- Typography: Cinzel for titles only ---------- */
+.bg-firelink h1, .bg-firelink h2, .bg-firelink h3,
+.bg-firelink .title, .bg-firelink .card-detail-layout .title,
+.bg-firelink .carousel-container .section-title,
+.bg-firelink .modal-title, .bg-firelink .offcanvas-title,
+.bg-firelink app-side-nav-companion-bar h2,
+.bg-firelink app-side-nav-companion-bar h4,
+.bg-firelink .side-nav-header {
+    font-family: "Cinzel Firelink", "Trajan Pro", Georgia, serif;
+    letter-spacing: .04em;
+}
+/* Long Cinzel titles wrap on phones: give them room */
+.bg-firelink .carousel-container .section-title,
+.bg-firelink app-side-nav-companion-bar h4 { line-height: 1.25; }
+@media (max-width: 576px) {
+    .bg-firelink .carousel-container .section-title { font-size: 1.2rem; }
+}
+
+/* ---------- Brand: the home page's bonfire + FIRELINK wordmark ---------- */
+.bg-firelink .navbar-brand app-image {
+    display: inline-block; width: 26px; height: 42px; margin: -9px 2px -9px 0;
+    vertical-align: middle;
+    background: var(--fl-fogueira) 0 0 / 208px 42px no-repeat;
+    image-rendering: pixelated;
+    animation: fl-crepita 1.36s steps(8) infinite;
+}
+@keyframes fl-crepita { to { background-position: -208px 0; } }
+@media (prefers-reduced-motion: reduce) {
+    .bg-firelink .navbar-brand app-image { animation: none; background-image: var(--fl-fogueira-parada); background-size: 26px 42px; }
+}
+.bg-firelink .navbar-brand app-image img { visibility: hidden; }
+.bg-firelink .navbar-brand .logo span { display: none; }
+.bg-firelink .navbar-brand .logo::after {
+    content: "FIRELINK";
+    font-family: "Silkscreen Firelink", monospace; font-weight: 700;
+    font-size: 1.25rem; letter-spacing: .08em; color: #ffd36b;
+    text-shadow: 2px 2px 0 #3a2410, 0 0 12px rgba(255, 140, 50, .3);
+}
+
+/* ---------- Akali asleep at the foot of the side menu ----------
+   (.sidenav-bottom is already position: fixed, so it anchors her) */
+.bg-firelink .sidenav-bottom::before {
+    content: ""; position: absolute; left: 50%; bottom: calc(100% + 6px);
+    width: 102px; height: 66px; transform: translateX(-50%);
+    background: var(--fl-akali) center / 102px 66px no-repeat;
+    image-rendering: pixelated; pointer-events: none;
+    filter: drop-shadow(0 3px 6px rgba(255, 140, 50, .18));
+}
+.bg-firelink .sidenav-bottom::after {
+    content: "z"; position: absolute; left: calc(50% - 64px); bottom: calc(100% + 50px);
+    font-family: "Silkscreen Firelink", monospace; font-size: .8rem; color: var(--fl-ash);
+    pointer-events: none; opacity: 0;
+    animation: fl-zzz 4.5s steps(1) infinite;
+}
+@keyframes fl-zzz {
+    0%   { opacity: 0; transform: translate(0, 0); content: "z"; }
+    25%  { opacity: .8; transform: translate(-3px, -4px); content: "z"; }
+    50%  { opacity: .8; transform: translate(-6px, -9px); content: "z Z"; }
+    75%  { opacity: .5; transform: translate(-9px, -14px); content: "z Z z"; }
+    100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bg-firelink .sidenav-bottom::after { animation: none; }
+}
+/* Phones and tablets (<= 992px): the menu is a full-height drawer without
+   .sidenav-bottom, so she sleeps at the bottom of the drawer itself.
+   Only when the screen is tall enough not to cover menu items. */
+@media (max-width: 992px) and (min-height: 600px) {
+    .bg-firelink .side-nav-container::after {
+        content: ""; position: absolute; left: 50%; bottom: 18px;
+        width: 102px; height: 66px; transform: translateX(-50%);
+        background: var(--fl-akali) center / 102px 66px no-repeat;
+        image-rendering: pixelated; pointer-events: none;
+        filter: drop-shadow(0 3px 6px rgba(255, 140, 50, .18));
+    }
+    .bg-firelink .side-nav-container .side-nav::after {
+        content: "z"; position: absolute; left: calc(50% - 64px); bottom: 68px;
+        font-family: "Silkscreen Firelink", monospace; font-size: .8rem; color: var(--fl-ash);
+        pointer-events: none; opacity: 0;
+        animation: fl-zzz 4.5s steps(1) infinite;
+    }
+}
+@media (max-width: 992px) and (min-height: 600px) and (prefers-reduced-motion: reduce) {
+    .bg-firelink .side-nav-container .side-nav::after { animation: none; }
+}
+
+/* closed (icon-only) side menu: no room for her */
+.bg-firelink .side-nav-container.closed .sidenav-bottom::before,
+.bg-firelink .side-nav-container.closed .sidenav-bottom::after,
+.bg-firelink .closed .sidenav-bottom::before,
+.bg-firelink .closed .sidenav-bottom::after { display: none; }
+
+/* Gilded rule under the page header */
+.bg-firelink app-side-nav-companion-bar .main-container,
+.bg-firelink app-side-nav-companion-bar > div:first-child {
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(90deg, transparent, var(--fl-bronze-strong) 15%, var(--fl-bronze-strong) 85%, transparent) 1;
+}
+.bg-firelink .navbar {
+    border-bottom: 1px solid var(--fl-bronze);
+}
+
+/* ---------- Cards: warm light from below on hover/focus ---------- */
+.bg-firelink app-card-item .card,
+.bg-firelink .card-item-container .card {
+    transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+}
+.bg-firelink app-card-item .card:hover,
+.bg-firelink app-card-item .card:focus-within {
+    border-color: rgba(255, 184, 108, .55);
+    box-shadow: 0 .55rem 1.1rem -.35rem rgba(255, 130, 40, .45), var(--fl-glow);
+}
+
+/* Progress bars as an ember: dark red -> orange -> yellow-white */
+.bg-firelink .progress-bar,
+.bg-firelink app-card-item .progress-banner .progress-bar,
+.bg-firelink .card .progress-banner .progress-bar {
+    background-color: var(--fl-ember-2) !important;
+    background-image: linear-gradient(90deg, #7a2a1a 0%, #c9562a 35%, #ff9a4a 75%, #ffe2a8 100%) !important;
+    box-shadow: 0 0 .45rem rgba(255, 150, 60, .55);
+}
+
+/* Unread triangle / badges in ember */
+.bg-firelink .not-read-badge,
+.bg-firelink .not-read-badge::before {
+    border-color: transparent var(--fl-ember) transparent transparent;
+}
+
+/* Side nav active item: ember bar on the left, like a lit brazier */
+.bg-firelink .side-nav-item.active {
+    box-shadow: inset 3px 0 0 var(--fl-ember);
+}
+
+/* Links in Dracula purple (Bootstrap link variables, so cards and nav stay bone) */
+.bg-firelink {
+    --bs-link-color: #bd93f9;
+    --bs-link-color-rgb: 189, 147, 249;
+    --bs-link-hover-color: #d6b9ff;
+    --bs-link-hover-color-rgb: 214, 185, 255;
+}
+.bg-firelink .card-body .card-content,
+.bg-firelink .card-body .card-title,
+.bg-firelink .card-body a { color: var(--fl-bone); }
+.bg-firelink .navbar-brand { color: var(--fl-bone); }
+
+/* Scrollbar */
+.bg-firelink ::-webkit-scrollbar-thumb { background-color: rgba(255, 184, 108, .35); }
+.bg-firelink * { scrollbar-color: rgba(255, 184, 108, .35) transparent; }
+
+.bg-firelink ::selection { background: rgba(189, 147, 249, .4); }

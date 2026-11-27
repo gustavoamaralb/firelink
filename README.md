@@ -26,7 +26,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 | Debian 13 (no desktop) | operating system | — |
 | Samba + wsdd2 + Avahi | a shared `bau` folder plus one personal folder per person; shows up under *Network* on Windows and as `firelink.local` | `\\firelink`, `smb://firelink.local` |
 | Jellyfin | movies, animations, series and recorded classes, with VA-API (i965) hardware acceleration for H.264, MPEG-2 and VC-1 | `:8096` |
-| Kavita | comics (CBZ/CBR/PDF) and books (EPUB/PDF) with per-person reading progress | `:5000` |
+| Kavita | comics (CBZ/CBR/PDF) and books (EPUB/PDF) with per-person reading progress, in the Firelink theme | `:5000` |
 | Caddy | home page and `/api/` proxy | `:80` |
 | firelink-api | service status, Akali's scoreboard and the household chat (Python, standard library only) | `127.0.0.1:8091` |
 | AdGuard Home | DNS for the whole house: blocks trackers, malware and phishing domains and ads, with no query log and no statistics | `:53`, panel `:3000` |
@@ -40,7 +40,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 page/         home page (a single HTML file) and the household config example
 api/          firelink-api, its systemd unit (template) and the install script
 scripts/      firelink-smart (disk health)
-config/       samba, caddy, nftables, ssh, systemd, cron, apt, disks and adguard
+config/       samba, caddy, nftables, ssh, systemd, cron, apt, disks, adguard and the kavita theme
 assets/       README banner (rendered from the home page itself)
 ```
 
@@ -132,7 +132,11 @@ affiliated with the game or its creators.
    with a default `rwx` ACL on `bau`, and read access for the `jellyfin` and `kavita`
    system users where needed; set Samba passwords with `smbpasswd -a`.
 5. Kavita: extract the latest release `.tar.gz` into `/opt/Kavita` and use
-   `config/systemd/kavita.service`.
+   `config/systemd/kavita.service`. For the theme, run `config/kavita/build.sh` and upload
+   `firelink.css` under Settings → Themes; each person then picks it in their own settings.
+   It was written for Kavita 0.9.1.4: Dracula colours on a crypt-black base with the ember
+   as accent, Cinzel headings, the home page's bonfire beside a FIRELINK wordmark, and Akali
+   asleep at the foot of the side menu.
 6. Home page: copy `page/index.html` to `/srv/www/firelink/` and create `config.js` next
    to it from `config.example.js`, listing the household members, their birthdays and who
    gets Mother's Day greetings. The API reads the names from the same file.
@@ -180,3 +184,7 @@ Developed with [Claude Code](https://claude.com/claude-code) (Anthropic) as an A
 No license is granted for this repository, including the code and the pixel art
 (Akali and the Keeper of the Flame). You are welcome to read it; reuse or
 redistribution requires permission.
+
+Exception: the fonts embedded in the Kavita theme, Cinzel and Silkscreen, belong to their
+authors and are distributed under the SIL Open Font License 1.1
+(`config/kavita/fonts-licenses/`).
