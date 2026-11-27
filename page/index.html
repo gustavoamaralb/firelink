@@ -205,13 +205,9 @@
   .servidor .ic { display: inline-block; width: 22px; text-align: center; margin-right: 8px; }
   .servidor .bom { color: #9fdc7c; } .servidor .ruim { color: #ff7a5c; }
   /* --- the shield (AdGuard Home): original pixel heater shield with an ember emblem --- */
-  .servidor .ic-escudo { display: inline-block; width: 22px; height: 22px; margin-right: 8px; vertical-align: -4px; text-align: center; }
-  .ic-escudo svg { display: inline-block; width: 18px; height: 22px; shape-rendering: crispEdges; }
-  .escudo-acao { margin-left: 10px; padding: 0 2px; border: 0; background: none; cursor: pointer;
-                 font-family: "VT323", monospace; font-size: 18px; color: var(--gold-dark); }
-  .escudo-acao::before { content: "[ "; } .escudo-acao::after { content: " ]"; }
-  .escudo-acao:hover, .escudo-acao:focus-visible { color: var(--gold); outline: none; }
-  .escudo-acao:disabled { opacity: .5; cursor: default; }
+  .ic-escudo { display: inline-block; width: 14px; height: 17px; margin: 0 10px 2px 0; vertical-align: middle; }
+  .ic-escudo svg { display: block; width: 100%; height: 100%; shape-rendering: crispEdges; }
+  .botao.ocupado { opacity: .6; pointer-events: none; }
   /* --- scoreboard --- */
   .placar { margin: 30px var(--px) 0; text-align: left; }
   .placar b { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; letter-spacing: .1em; color: var(--gold-dark); }
@@ -498,6 +494,10 @@
       <div class="titulo"><span class="ic-chat" aria-hidden="true"><svg viewBox="0 0 9 8" shape-rendering="crispEdges"><path fill="#e0b45c" d="M1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM2 7h1v1h-1z"/><path fill="#15100b" d="M1 1h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1z"/><path fill="#ffd36b" d="M4 2h1v1h-1zM4 3h1v1h-1z"/><path fill="#ff9a2e" d="M3 3h1v1h-1zM5 3h1v1h-1zM4 4h1v1h-1z"/><path fill="#ff5a1a" d="M3 4h1v1h-1zM5 4h1v1h-1z"/></svg></span>Chat<span class="contador" id="chat-contador" hidden></span></div>
       <div class="desc" id="chat-desc">Conversa da casa, de um computador para o outro</div>
     </a>
+    <a class="botao" id="escudo" href="#escudo" role="button">
+      <div class="titulo"><i class="luz" id="luz-escudo" title="verificando..."></i><span class="ic-escudo" id="ic-escudo" aria-hidden="true"></span>Escudo</div>
+      <div class="desc" id="escudo-desc">Anúncios e rastreadores barrados na casa toda</div>
+    </a>
   </nav>
 
   <section class="disco monitor" id="monitor" aria-label="Monitor do servidor">
@@ -532,7 +532,6 @@
     </div>
     <ul class="servidor">
       <li id="srv-ligado"><span class="ic">🔥</span>…</li>
-      <li id="srv-escudo" hidden></li>
       <li id="srv-hd"><span class="ic">▣</span>…</li>
     </ul>
   </section>
@@ -1427,9 +1426,12 @@
   })();
 
   // ---------- the shield: AdGuard Home blocking ads and trackers for the whole house ----------
-  // State arrives with /api/status (every minute); "baixar" pauses the blocking for 10 minutes.
+  // A menu button. State arrives with /api/status (every minute); tapping it lowers the shield
+  // for 10 minutes (after the keeper asks) or raises it again.
   (function () {
-    var li = document.getElementById('srv-escudo'), estado = null, desde = 0, tic = null;
+    var btn = document.getElementById('escudo'), desc = document.getElementById('escudo-desc'),
+        ic = document.getElementById('ic-escudo'), luzEl = document.getElementById('luz-escudo');
+    var estado = null, desde = 0, tic = null;
     var cores = { k: '#15100b', i: '#8f8170', f: '#4a3a2c', y: '#ffd36b', o: '#ff9a2e', r: '#ff5a1a' };
     var rachado = { k: '#15100b', i: '#6b6158', f: '#332b24', c: '#0a0806', a: '#5a5046' };
     var INTEIRO = ['kkkkkkkkk', 'kiiiiiiik', 'kiffyffik', 'kiffoyfik', 'kifoyofik', 'kifryorik', 'kifrrrfik',
@@ -1439,32 +1441,32 @@
     function svg(linhas, p) {
       var r = '';
       linhas.forEach(function (l, y) { for (var x = 0; x < l.length; x++) if (p[l[x]]) r += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + p[l[x]] + '"/>'; });
-      return '<svg viewBox="0 0 9 11" aria-hidden="true">' + r + '</svg>';
+      return '<svg viewBox="0 0 9 11">' + r + '</svg>';
     }
-    function minutos(seg) { var m = Math.max(1, Math.ceil(seg / 60)); return m + (m === 1 ? ' minuto' : ' minutos'); }
+    ic.innerHTML = svg(INTEIRO, cores);
+    function minutos(seg) { var m = Math.max(1, Math.ceil(seg / 60)); return m + ' min'; }
     function guardia(t) {
       var eu = window.quemEsta && window.quemEsta();
       if (window.akaliFala) window.akaliFala(t.replace(/\{n\}/g, eu || 'viajante'), 'Guardiã da Chama');
     }
+    function luz(ok, t) { luzEl.className = 'luz ' + (ok ? 'ok' : 'fora'); luzEl.title = t; }
     function desenhar() {
       if (!estado) return;
       var resta = estado.volta_seg ? estado.volta_seg - Math.floor((Date.now() - desde) / 1000) : null;
       if (resta !== null && resta <= 0) { buscar(); resta = 1; }
-      var h, botao = '';
       if (estado.estado === 'erguido') {
-        h = '<span class="ic-escudo">' + svg(INTEIRO, cores) + '</span><span class="bom">Escudo erguido</span> · anúncios e rastreadores barrados';
-        if (estado.controle) botao = '<button type="button" class="escudo-acao" data-acao="baixar" title="Desliga o bloqueio por 10 minutos, para abrir um link que não abriu">baixar por 10 min</button>';
-        li.title = 'AdGuard Home no firelink: bloqueia anúncios, rastreadores e golpes na rede da casa. Não guarda os sites acessados.';
+        ic.innerHTML = svg(INTEIRO, cores); luz(true, 'erguido');
+        desc.textContent = 'Anúncios e rastreadores barrados';
+        btn.title = 'Bloqueio de anúncios, rastreadores e golpes na rede da casa (AdGuard Home). Não guarda os sites acessados.';
       } else if (estado.estado === 'baixado') {
-        h = '<span class="ic-escudo">' + svg(QUEBRADO, rachado) + '</span><span class="ruim">Escudo baixado</span>' +
-            (resta ? ' · ergue-se sozinho em ' + minutos(resta) : '');
-        if (estado.controle) botao = '<button type="button" class="escudo-acao" data-acao="erguer">erguer agora</button>';
-        li.title = 'O bloqueio de anúncios está pausado.';
+        ic.innerHTML = svg(QUEBRADO, rachado); luz(false, 'baixado');
+        desc.textContent = resta ? 'Baixado · volta sozinho em ' + minutos(resta) : 'Baixado';
+        btn.title = 'O bloqueio de anúncios está pausado.';
       } else {
-        h = '<span class="ic-escudo">' + svg(QUEBRADO, rachado) + '</span><span class="ruim">Escudo caído ⚠</span> · a internet segue pela reserva do roteador';
-        li.title = 'O AdGuard Home não respondeu. Os aparelhos usam o DNS do roteador, sem bloqueio.';
+        ic.innerHTML = svg(QUEBRADO, rachado); luz(false, 'fora do ar');
+        desc.textContent = 'Fora do ar · a internet segue, sem bloqueio';
+        btn.title = 'O AdGuard Home não respondeu. Os aparelhos usam o DNS do roteador, sem bloqueio.';
       }
-      li.innerHTML = h + botao; li.hidden = false;
       clearInterval(tic); tic = resta ? setInterval(desenhar, 20 * 1000) : null;
     }
     window.escudoEstado = function (e) { estado = e; desde = Date.now(); desenhar(); };
@@ -1472,10 +1474,10 @@
       fetch('api/status', { cache: 'no-store' }).then(function (r) { return r.json(); })
         .then(function (d) { if (d.escudo) window.escudoEstado(d.escudo); }).catch(function () {});
     }
-    function enviar(acao, b) {
+    function enviar(acao) {
       var eu = window.quemEsta && window.quemEsta();
       if (!eu) { guardia('Diga-me primeiro quem se aproxima da fogueira.'); return; }
-      if (b) b.disabled = true;
+      btn.classList.add('ocupado');
       fetch('api/escudo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quem: eu, acao: acao }) })
         .then(function (r) { if (!r.ok) throw r; return r.json(); })
         .then(function (d) {
@@ -1483,20 +1485,23 @@
           guardia(acao === 'baixar' ? 'O escudo desceu, {n}. Em 10 minutos ele se ergue sozinho.'
                                     : 'O escudo voltou a guardar esta casa, {n}.');
         })
-        .catch(function () { if (b) b.disabled = false; guardia('O escudo não me obedeceu, {n}... tente de novo daqui a pouco.'); });
+        .catch(function () { guardia('O escudo não me obedeceu, {n}... tente de novo daqui a pouco.'); })
+        .then(function () { btn.classList.remove('ocupado'); });
     }
-    li.addEventListener('click', function (ev) {
-      var b = ev.target.closest('.escudo-acao'); if (!b) return;
-      var acao = b.dataset.acao;
-      if (acao === 'erguer') return enviar('erguer', b);
+    function mostrarDialogo() { document.getElementById('dialogo').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      if (!estado) return;
+      if (estado.estado === 'caido') { guardia('O escudo caiu, {n}. A internet segue sem ele até o firelink se recuperar.'); return mostrarDialogo(); }
+      if (!estado.controle) { guardia('O escudo está ' + (estado.estado === 'erguido' ? 'erguido' : 'baixado') + ', {n}. Só o painel do AdGuard pode movê-lo agora.'); return mostrarDialogo(); }
+      if (estado.estado === 'baixado') return enviar('erguer');
       var eu = window.quemEsta && window.quemEsta();
       var perguntou = eu && window.perguntaGuardia && window.perguntaGuardia(
         'Baixar o escudo por 10 minutos, ' + eu + '? Os anúncios e rastreadores passam enquanto isso.', [
-          { rotulo: 'Baixar o escudo', acao: function () { enviar('baixar', b); } },
+          { rotulo: 'Baixar o escudo', acao: function () { enviar('baixar'); } },
           { rotulo: 'Deixar erguido', acao: function () { guardia('Sábia escolha, {n}. O escudo segue firme.'); } }
         ]);
-      if (!perguntou) enviar('baixar', b);
-      else document.getElementById('dialogo').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (perguntou) mostrarDialogo(); else enviar('baixar');
     });
   })();
 

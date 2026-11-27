@@ -60,7 +60,7 @@ A single HTML file with no dependencies besides two Google Fonts.
 - **Server panel:** status lights for Jellyfin and Kavita, uptime, disk health (SMART,
   temperature, last self-test) and Akali's scoreboard of pets and swats per person, shared
   across devices.
-- **The shield:** a pixel heater shield with an ember emblem shows whether AdGuard Home is
+- **The shield:** a menu button with a pixel heater shield (ember emblem) and a status light shows whether AdGuard Home is
   blocking (raised), paused (lowered, with the minutes left) or not answering (cracked). Anyone
   at home can lower it for 10 minutes, after the keeper asks to confirm, to open a link that a
   blocked tracker broke; it rises again by itself.
