@@ -132,9 +132,14 @@ affiliated with the game or its creators.
    with a default `rwx` ACL on `bau`, and read access for the `jellyfin` and `kavita`
    system users where needed; set Samba passwords with `smbpasswd -a`.
 5. Kavita: extract the latest release `.tar.gz` into `/opt/Kavita` and use
-   `config/systemd/kavita.service`. For the theme, run `config/kavita/build.sh` and upload
-   `firelink.css` under Settings → Themes; each person then picks it in their own settings.
-   It was written for Kavita 0.9.1.4: Dracula colours on a crypt-black base with the ember
+   `config/systemd/kavita.service`. Once the admin account exists, install the theme with
+   `config/kavita/build.sh` and `python3 config/kavita/instalar.py --url http://<server>:5000`:
+   it uses Kavita's API to upload `firelink.css`, make it the server default (every account
+   created afterwards starts with it) and switch the admin's account. Accounts that already
+   existed keep their choice until the person picks Firelink under Settings → Theme. Kavita
+   will not take a second upload of the same theme, but it reads the file from
+   `config/themes/` on every request, so a newer version is installed by overwriting that
+   file (the script prints the command when they differ). It was written for Kavita 0.9.1.4: Dracula colours on a crypt-black base with the ember
    as accent, Cinzel headings, the home page's bonfire beside a FIRELINK wordmark, and Akali
    asleep at the foot of the side menu.
 6. Home page: copy `page/index.html` to `/srv/www/firelink/` and create `config.js` next
