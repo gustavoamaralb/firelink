@@ -1,0 +1,278 @@
+/* Firelink - Jellyfin theme (custom CSS, Jellyfin 12.4).
+   Companion of the Kavita theme: Dracula colours on a crypt-black base, Dracula
+   orange (#FFB86C) as the ember for buttons, progress and the remote's focus,
+   Dracula purple for links; Cinzel headings; the home page's bonfire and a
+   FIRELINK wordmark in the header; Akali asleep at the foot of the side menu.
+   Pasted into Dashboard -> General -> Custom CSS (applies to every account and
+   to the web-based apps: browser, LG webOS, Android). build.sh embeds fonts
+   and art. Kept light for the TV: no blur, no continuous animation except the
+   small bonfire. */
+@font-face {
+    font-family: "Cinzel Firelink";
+    font-style: normal; font-weight: 400 900; font-display: swap;
+    src: url(data:font/woff2;base64,@@CINZEL@@) format("woff2");
+}
+@font-face {
+    font-family: "Silkscreen Firelink";
+    font-style: normal; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,@@SILKSCREEN@@) format("woff2");
+}
+
+/* Palette: Jellyfin builds its look from these variables; html[data-theme]
+   outranks its ":root, [data-theme=...]" so every built-in theme becomes Firelink. */
+html[data-theme] {
+    --fl-crypt: #16131c;
+    --fl-stone: #1e1a25;
+    --fl-stone-2: #262030;
+    --fl-bone: #e8e2d4;
+    --fl-ash: #a39b8c;
+    --fl-ember: #ffb86c;
+    --fl-ember-2: #f0994a;
+    --fl-ember-3: #c96f2e;
+    --fl-violet: #bd93f9;
+    --fl-bronze: rgba(201, 160, 99, .28);
+    --fl-fogueira: url(data:image/png;base64,@@FOGUEIRA@@);
+    --fl-fogueira-parada: url(data:image/png;base64,@@FOGUEIRA_PARADA@@);
+    --fl-akali: url(data:image/png;base64,@@AKALI@@);
+
+    color-scheme: dark;
+    --jf-palette-primary-main: #ffb86c;
+    --jf-palette-primary-dark: #c96f2e;
+    --jf-palette-primary-light: #ffd1a0;
+    --jf-palette-primary-contrastText: #1a1208;
+    --jf-palette-primary-mainChannel: 255 184 108;
+    --jf-palette-secondary-main: #ffb86c;
+    --jf-palette-secondary-dark: #c96f2e;
+    --jf-palette-secondary-contrastText: #1a1208;
+    --jf-palette-background-default: #16131c;
+    --jf-palette-background-paper: #1e1a25;
+    --jf-palette-background-paperChannel: 30 26 37;
+    --jf-palette-background-defaultImage: none;
+    --jf-palette-text-primary: #e8e2d4;
+    --jf-palette-text-secondary: rgba(232, 226, 212, .72);
+    --jf-palette-divider: rgba(201, 160, 99, .2);
+    --jf-palette-action-hover: rgba(255, 184, 108, .1);
+    --jf-palette-action-focus: rgba(255, 184, 108, .18);
+    --jf-palette-action-selectedOpacity: .16;
+    --jf-palette-AppBar-defaultBg: #110e16;
+    --jf-palette-AppBar-transparentBg: rgba(17, 14, 22, .55);
+    --jf-palette-AppBar-gradient: none;
+    --jf-palette-FilledInput-bg: #262030;
+    --jf-palette-FilledInput-borderColor: rgba(201, 160, 99, .3);
+    --jf-palette-SnackbarContent-bg: #262030;
+    --jf-palette-SnackbarContent-color: #e8e2d4;
+    --jf-palette-Button-inheritContainedBg: #322a3e;
+    --jf-palette-Button-inheritContainedHoverBg: #3a3247;
+    --jf-palette-error-main: #ff5555;
+    --jf-palette-error-light: #ff7777;
+    --jf-card-borderRadius: .3em;
+}
+
+/* ---------- Atmosphere ---------- */
+html[data-theme] body,
+html[data-theme] .backgroundContainer:not(.withBackdrop),
+html[data-theme] .mainAnimatedPage:not(.itemDetailPage) {
+    background-color: var(--fl-crypt);
+}
+html[data-theme] body:not(.hide-scroll) {
+    background-image:
+        radial-gradient(ellipse 80% 45% at 50% 108%, rgba(255, 140, 50, .09), transparent 70%),
+        radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, .5) 100%);
+    background-attachment: fixed;
+}
+html[data-theme] .skinHeader-withBackground {
+    border-bottom: 1px solid var(--fl-bronze);
+}
+html[data-theme] .skinHeader-blurred { backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* ---------- Brand: bonfire + FIRELINK in place of the Jellyfin icon and the
+   server name (new MUI app bar: the first link, to #/) ---------- */
+html[data-theme] header.MuiAppBar-root {
+    border-bottom: 1px solid var(--fl-bronze);
+    background-image: none;
+}
+html[data-theme] header.MuiAppBar-root a[href="#/"] {
+    font-size: 0 !important; gap: 0; padding-top: 0; padding-bottom: 0;
+}
+html[data-theme] header.MuiAppBar-root a[href="#/"] .MuiButton-startIcon {
+    width: 26px; height: 42px; margin: -6px 10px -6px 0;
+    background: var(--fl-fogueira) 0 0 / 208px 42px no-repeat;
+    image-rendering: pixelated;
+    animation: fl-crepita 1.36s steps(8) infinite;
+}
+html[data-theme] header.MuiAppBar-root a[href="#/"] .MuiButton-startIcon img { visibility: hidden; }
+html[data-theme] header.MuiAppBar-root a[href="#/"]::after {
+    content: "FIRELINK";
+    font: 700 1.25rem/1 "Silkscreen Firelink", monospace; letter-spacing: .08em;
+    color: #ffd36b; text-shadow: 2px 2px 0 #3a2410, 0 0 12px rgba(255, 140, 50, .3);
+    white-space: nowrap;
+}
+@keyframes fl-crepita { from { background-position: 0 0; } to { background-position: -208px 0; } }
+/* legacy header (TV layout and older pages) */
+html[data-theme] .pageTitleWithDefaultLogo {
+    background-image: var(--fl-fogueira-parada) !important;
+    background-size: contain !important; background-position: left center !important;
+    image-rendering: pixelated;
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme] header.MuiAppBar-root a[href="#/"] .MuiButton-startIcon {
+        animation: none; background-image: var(--fl-fogueira-parada); background-size: 26px 42px;
+    }
+}
+
+/* ---------- Typography: Cinzel for titles ---------- */
+html[data-theme] .sectionTitle,
+html[data-theme] .sectionTitle-cards,
+html[data-theme] .pageTitle:not(.pageTitleWithLogo),
+html[data-theme] .itemName,
+html[data-theme] .parentName,
+html[data-theme] .detailSectionHeader h2,
+html[data-theme] .listItemBodyText.secondary + .sectionTitle,
+html[data-theme] #loginPage h1,
+html[data-theme] .formDialogHeaderTitle {
+    font-family: "Cinzel Firelink", Georgia, serif;
+    letter-spacing: .03em;
+}
+html[data-theme] .sectionTitle a, html[data-theme] .sectionTitle-cards a { font-family: inherit; }
+
+/* ---------- Cards: bronze hairline, warm glow on focus (remote and mouse) ---------- */
+html[data-theme] .cardBox:not(.visualCardBox) .cardScalable,
+html[data-theme] .cardBox.visualCardBox {
+    border: 1px solid rgba(201, 160, 99, .16);
+}
+html[data-theme] .cardBox:not(.visualCardBox) .cardPadder { background-color: var(--fl-stone-2); }
+html[data-theme] .card:focus .cardBox.visualCardBox,
+html[data-theme] .card:focus .cardBox:not(.visualCardBox) .cardScalable {
+    box-shadow: 0 0 0 2px var(--fl-ember), 0 .4rem 1.2rem rgba(255, 130, 40, .45);
+}
+html.layout-desktop[data-theme] .card:hover .cardBox:not(.visualCardBox) .cardScalable {
+    box-shadow: 0 0 0 1px rgba(255, 184, 108, .55), 0 .4rem 1rem rgba(255, 130, 40, .3);
+}
+
+/* Progress as an ember */
+html[data-theme] .itemProgressBarForeground {
+    background-color: var(--fl-ember-2);
+    background-image: linear-gradient(90deg, #7a2a1a 0%, #c9562a 35%, #ff9a4a 75%, #ffe2a8 100%);
+}
+html[data-theme] .itemProgressBar { background-color: rgba(22, 19, 28, .7); }
+
+/* Watched / unplayed count badges */
+html[data-theme] .playedIndicator,
+html[data-theme] .countIndicator {
+    background-color: var(--fl-ember);
+    color: #1a1208;
+}
+
+/* ---------- Side menu (phones: MUI drawer; legacy drawer kept for the TV) ---------- */
+html[data-theme] .MuiDrawer-paper {
+    background-color: #1b1722 !important; background-image: none !important;
+    border-right: 1px solid var(--fl-bronze);
+}
+html[data-theme] .MuiDrawer-paper .Mui-selected { box-shadow: inset 3px 0 0 var(--fl-ember); }
+/* the Jellyfin icon (drawer header, legacy logo spots) becomes the bonfire */
+html[data-theme] img[src*="icon-transparent"] {
+    width: 26px !important; height: 42px !important; max-width: none !important; max-height: none !important;
+    object-position: -9999px 0;
+    background: var(--fl-fogueira-parada) center / 26px 42px no-repeat;
+    image-rendering: pixelated;
+}
+html[data-theme] header.MuiAppBar-root a[href="#/"] img[src*="icon-transparent"] { background: none; }
+html[data-theme] .mainDrawer { border-right: 1px solid var(--fl-bronze); }
+html[data-theme] .navMenuOption-selected { box-shadow: inset 3px 0 0 #ffe2a8; }
+
+/* Akali asleep: at the foot of the phone drawer, at the end of the home page,
+   and at the foot of the legacy drawer */
+@media (min-height: 600px) {
+    html[data-theme] .MuiDrawer-paper::after {
+        content: ""; position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
+        width: 102px; height: 66px;
+        background: var(--fl-akali) center / 102px 66px no-repeat;
+        image-rendering: pixelated; pointer-events: none;
+        filter: drop-shadow(0 3px 6px rgba(255, 140, 50, .18));
+    }
+}
+html[data-theme] .homeSectionsContainer::after,
+html[data-theme] .mainDrawer-scrollContainer::after {
+    content: ""; display: block; width: 102px; height: 66px; margin: 28px auto 24px;
+    background: var(--fl-akali) center / 102px 66px no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 3px 6px rgba(255, 140, 50, .18));
+}
+
+/* her "z Z z", as in the Kavita theme: beside her head, drifting up */
+@media (min-height: 600px) {
+    html[data-theme] .MuiDrawer-paper::before {
+        content: "z"; position: absolute; left: calc(50% - 64px); bottom: 70px; z-index: 1;
+        font-family: "Silkscreen Firelink", monospace; font-size: .8rem; color: var(--fl-ash);
+        opacity: 0; animation: fl-zzz 4.5s steps(1) infinite;
+    }
+}
+/* home page: Akali is the container's ::after; the z rides on the tab panel's
+   ::after, lifted back up beside her head */
+html[data-theme] .pageTabContent.is-active:has(> .homeSectionsContainer)::after {
+    content: "z"; display: block; position: relative; height: 0;
+    width: 102px; margin: 0 auto; top: -104px; left: -16px;
+    font-family: "Silkscreen Firelink", monospace; font-size: .8rem; color: var(--fl-ash);
+    opacity: 0; animation: fl-zzz 4.5s steps(1) infinite;
+}
+@keyframes fl-zzz {
+    0%   { opacity: 0; transform: translate(0, 0); content: "z"; }
+    25%  { opacity: .8; transform: translate(-3px, -4px); content: "z"; }
+    50%  { opacity: .8; transform: translate(-6px, -9px); content: "z Z"; }
+    75%  { opacity: .5; transform: translate(-9px, -14px); content: "z Z z"; }
+    100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme] .MuiDrawer-paper::before,
+    html[data-theme] .pageTabContent.is-active:has(> .homeSectionsContainer)::after { animation: none; }
+}
+
+/* ---------- Links and tabs ---------- */
+html[data-theme] .itemDetailPage .button-link,
+html[data-theme] .itemDetailPage a.textActionButton,
+html[data-theme] .itemDetailPage .itemGenres a,
+html[data-theme] .itemDetailPage .itemExternalLinks a { color: var(--fl-violet); }
+/* tags: many and long, kept quiet */
+html[data-theme] .itemDetailPage .itemTags a { color: var(--fl-ash); font-weight: 400; }
+html[data-theme] .itemDetailPage .itemTags a:hover { color: var(--fl-ember); }
+html[data-theme] .emby-tab-button-active { color: var(--fl-ember); }
+html[data-theme] .emby-tab-button-active::after,
+html[data-theme] .emby-tab-button-active .emby-button-foreground { border-bottom-color: var(--fl-ember); }
+
+/* ---------- Detail pages ---------- */
+html[data-theme] .detailRibbon { background-color: rgba(17, 14, 22, .88); border-top: 1px solid var(--fl-bronze); }
+html[data-theme] .itemName.infoText { color: var(--fl-bone); }
+html[data-theme] .mediaInfoOfficialRating,
+html[data-theme] .mediaInfoText.mediaInfoOfficialRating { border-color: var(--fl-bronze); }
+html[data-theme] .starIcon { color: var(--fl-ember); }
+
+/* ---------- Sign-in page ---------- */
+html[data-theme] #loginPage {
+    background-image:
+        radial-gradient(ellipse 60% 40% at 50% 40%, rgba(255, 140, 50, .12), transparent 70%),
+        radial-gradient(ellipse 120% 90% at 50% 45%, transparent 50%, rgba(0, 0, 0, .55) 100%);
+}
+html[data-theme] #loginPage .padded-left.padded-right > h1,
+html[data-theme] #loginPage .manualLoginForm > h1,
+html[data-theme] #loginPage h1 {
+    color: var(--fl-bone);
+}
+html[data-theme] #loginPage .manualLoginForm::before,
+html[data-theme] #loginPage .visualLoginForm::before {
+    content: ""; display: block; width: 78px; height: 126px; margin: 0 auto 10px;
+    background: var(--fl-fogueira) 0 0 / 624px 126px no-repeat;
+    image-rendering: pixelated;
+    animation: fl-crepita-grande 1.36s steps(8) infinite;
+}
+@keyframes fl-crepita-grande { from { background-position: 0 0; } to { background-position: -624px 0; } }
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme] #loginPage .manualLoginForm::before,
+    html[data-theme] #loginPage .visualLoginForm::before {
+        animation: none; background-image: var(--fl-fogueira-parada); background-size: 78px 126px;
+    }
+}
+
+/* ---------- Scrollbars, selection ---------- */
+html[data-theme] ::-webkit-scrollbar-thumb { background-color: rgba(255, 184, 108, .35); }
+html[data-theme] * { scrollbar-color: rgba(255, 184, 108, .35) transparent; }
+html[data-theme] ::selection { background: rgba(189, 147, 249, .4); }

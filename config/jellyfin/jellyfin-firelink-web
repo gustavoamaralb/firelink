@@ -1,0 +1,21 @@
+#!/bin/sh
+# Replaces Jellyfin's favicons and home-screen icons with the Videoteca magic
+# lantern from the Firelink home page. jellyfin-web updates replace these
+# files (their names carry a build hash), so an apt hook from
+# instalar-web.sh runs this after every dpkg run. Never fails.
+W="${1:-/usr/share/jellyfin/web}"
+F="${2:-/usr/local/share/firelink/jellyfin/icons}"
+[ -d "$W" ] && [ -d "$F" ] || exit 0
+troca() {  # troca <icon> <file in web dir>...
+    origem="$F/$1"; shift
+    for alvo in "$@"; do
+        [ -f "$alvo" ] && ! cmp -s "$origem" "$alvo" && cp "$origem" "$alvo" && chmod 644 "$alvo"
+    done
+}
+troca favicon.ico      "$W"/favicon.*.ico
+troca touchicon.png    "$W"/touchicon.*.png "$W/favicons/touchicon.png"
+troca touchicon144.png "$W"/touchicon144.*.png "$W/favicons/touchicon144.png"
+troca touchicon72.png  "$W/favicons/touchicon72.png"
+troca touchicon114.png "$W/favicons/touchicon114.png"
+troca touchicon512.png "$W/favicons/touchicon512.png"
+exit 0

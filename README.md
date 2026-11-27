@@ -25,7 +25,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 |---|---|---|
 | Debian 13 (no desktop) | operating system | — |
 | Samba + wsdd2 + Avahi | a shared `bau` folder plus one personal folder per person; shows up under *Network* on Windows and as `firelink.local` | `\\firelink`, `smb://firelink.local` |
-| Jellyfin | movies, animations, series and recorded classes, with VA-API (i965) hardware acceleration for H.264, MPEG-2 and VC-1 | `:8096` |
+| Jellyfin | movies, animations, series and recorded classes, with VA-API (i965) hardware acceleration for H.264, MPEG-2 and VC-1, in the Firelink theme | `:8096` |
 | Kavita | comics (CBZ/CBR/PDF) and books (EPUB/PDF) with per-person reading progress, in the Firelink theme | `:5000` |
 | Caddy | home page and `/api/` proxy | `:80` |
 | firelink-api | service status, Akali's scoreboard and the household chat (Python, standard library only) | `127.0.0.1:8091` |
@@ -40,7 +40,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 page/         home page (a single HTML file) and the household config example
 api/          firelink-api, its systemd unit (template) and the install script
 scripts/      firelink-smart (disk health)
-config/       samba, caddy, nftables, ssh, systemd, cron, apt, disks, adguard and the kavita theme
+config/       samba, caddy, nftables, ssh, systemd, cron, apt, disks, adguard and the kavita and jellyfin themes
 assets/       README banner (rendered from the home page itself)
 ```
 
@@ -147,12 +147,21 @@ affiliated with the game or its creators.
    updates replace `wwwroot/`. It was written for Kavita 0.9.1.4: Dracula colours on a crypt-black base with the ember
    as accent, Cinzel headings, the home page's bonfire beside a FIRELINK wordmark, and Akali
    asleep at the foot of the side menu.
-6. Home page: copy `page/index.html` to `/srv/www/firelink/` and create `config.js` next
+6. Jellyfin theme: run `config/jellyfin/build.sh`, then `python3 config/jellyfin/instalar.py
+   --url http://<server>:8096`; it logs in as an administrator and writes `firelink.css` as
+   the server's custom CSS (Dashboard → General), which applies to every account, to the
+   sign-in page and to the web-based apps (browser, LG webOS, Android); `--remover` takes it
+   out. Same palette, fonts and art as the Kavita theme: the bonfire and FIRELINK in the
+   header, the ember on the remote's focus and on progress bars, and Akali asleep at the end
+   of the home page and at the foot of the phone menu. `sudo sh config/jellyfin/instalar-web.sh`
+   swaps the favicons for the Videoteca magic lantern from the home page, with an apt hook
+   that re-applies them after `jellyfin-web` updates.
+7. Home page: copy `page/index.html` to `/srv/www/firelink/` and create `config.js` next
    to it from `config.example.js`, listing the household members, their birthdays and who
    gets Mother's Day greetings. The API reads the names from the same file.
-7. Scripts and API: put the `api/` files and `scripts/firelink-smart` in `~/firelink-api`,
+8. Scripts and API: put the `api/` files and `scripts/firelink-smart` in `~/firelink-api`,
    then run `sudo sh ~/firelink-api/install.sh`.
-8. AdGuard Home: download the release `.tar.gz` and `checksums.txt` into the folder with
+9. AdGuard Home: download the release `.tar.gz` and `checksums.txt` into the folder with
    `config/adguard/`, run `sudo sh install.sh`, then `python3 configurar.py` (sets the panel
    password and encrypted upstreams), and `sudo sh privacidade.sh` to turn off the query log
    and statistics. For the shield button, run `python3 ~/firelink-api/guardar-senha-adguard.py`.
@@ -195,6 +204,6 @@ No license is granted for this repository, including the code and the pixel art
 (Akali and the Keeper of the Flame). You are welcome to read it; reuse or
 redistribution requires permission.
 
-Exception: the fonts embedded in the Kavita theme, Cinzel and Silkscreen, belong to their
+Exception: the fonts embedded in the Kavita and Jellyfin themes, Cinzel and Silkscreen, belong to their
 authors and are distributed under the SIL Open Font License 1.1
 (`config/kavita/fonts-licenses/`).
