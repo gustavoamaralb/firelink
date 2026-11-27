@@ -1,0 +1,18 @@
+#!/bin/sh
+# Puts Firelink into Kavita's web files: links the sign-in style into
+# index.html and replaces the favicons with the eBiblioteca tome from the home
+# page. Kavita updates replace wwwroot/, so this runs before every Kavita start
+# (systemd drop-in from instalar-web.sh); it never blocks Kavita from starting.
+K="${1:-/opt/Kavita}"
+W="$K/wwwroot"
+F=/usr/local/share/firelink/kavita
+[ -f "$W/index.html" ] && [ -d "$F" ] || exit 0
+if [ -f "$F/firelink-login.css" ]; then
+    cp "$F/firelink-login.css" "$W/firelink-login.css" && chmod 644 "$W/firelink-login.css"
+    grep -q 'firelink-login.css' "$W/index.html" ||
+        sed -i 's|</head>|<link rel="stylesheet" href="firelink-login.css"></head>|' "$W/index.html"
+fi
+if [ -d "$F/icons" ] && [ -d "$W/assets/icons" ]; then
+    for i in "$F"/icons/*; do cp "$i" "$W/assets/icons/" && chmod 644 "$W/assets/icons/$(basename "$i")"; done
+fi
+exit 0

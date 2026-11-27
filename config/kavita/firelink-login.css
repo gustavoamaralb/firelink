@@ -1,7 +1,7 @@
 /* Firelink - Kavita sign-in screens (login, register, password reset).
    Kavita draws these before it knows who is signing in, always with its
    built-in look, so no site theme reaches them. This file is linked from
-   Kavita's index.html by instalar-login.sh and only matches the splash
+   Kavita's index.html by instalar-web.sh and only matches the splash
    container those screens share. Same palette and art as firelink.css. */
 @font-face {
     font-family: "Silkscreen Firelink";

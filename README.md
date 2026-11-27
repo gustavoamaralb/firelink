@@ -141,9 +141,10 @@ affiliated with the game or its creators.
    `config/themes/` on every request, so a newer version is installed by overwriting that
    file (the script prints the command when they differ). The sign-in screens are drawn
    before Kavita knows who is signing in, always in its built-in look; `sudo sh
-   config/kavita/instalar-login.sh` links `firelink-login.css` into Kavita's `index.html`
-   and adds a systemd drop-in that re-links it before every start, since Kavita updates
-   replace `wwwroot/`. It was written for Kavita 0.9.1.4: Dracula colours on a crypt-black base with the ember
+   config/kavita/instalar-web.sh` links `firelink-login.css` into Kavita's `index.html`,
+   swaps the favicons for the eBiblioteca tome from the home page (`config/kavita/icons/`)
+   and adds a systemd drop-in that re-applies both before every start, since Kavita
+   updates replace `wwwroot/`. It was written for Kavita 0.9.1.4: Dracula colours on a crypt-black base with the ember
    as accent, Cinzel headings, the home page's bonfire beside a FIRELINK wordmark, and Akali
    asleep at the foot of the side menu.
 6. Home page: copy `page/index.html` to `/srv/www/firelink/` and create `config.js` next

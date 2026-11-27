@@ -1,6 +1,6 @@
 #!/bin/sh
 # Builds firelink.css (the theme uploaded to Kavita) and firelink-login.css
-# (the sign-in screens, see instalar-login.sh) from their .src.css,
+# (the sign-in screens, see instalar-web.sh) from their .src.css,
 # embedding the fonts (SIL Open Font License) and the pixel art, so the
 # theme is one self-contained file that works offline.
 set -e
