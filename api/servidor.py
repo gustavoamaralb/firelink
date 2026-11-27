@@ -13,6 +13,13 @@ POST /api/chat     -> {"quem": "<name>", "texto": "..."} or {"quem": "<name>", "
 POST /api/chat/lido -> {"quem": "<name>", "id": <id>} marks messages as read up to that id
 POST /api/chat/fixar -> {"quem": "<name>", "id": <id>, "fixa": true | false} pins or unpins a text message
 POST /api/chat/apagar -> {"quem": "<name>", "id": <id>} deletes one's own message
+POST /api/escudo  -> {"quem": "<name>", "acao": "baixar" | "erguer"} pauses AdGuard Home's blocking for
+                     10 minutes, or turns it back on (the "shield")
+
+The shield state in /api/status comes from a DNS question to AdGuard Home on 127.0.0.1:53: a blocked
+domain answered with 0.0.0.0 means the shield is up. Pausing, and the time left on a pause, use
+AdGuard Home's own API with the credentials in ~/.config/firelink/adguard.json (created by
+guardar-senha-adguard.py, mode 600). AdGuard Home keeps no query log or statistics on firelink.
 
 A deleted message is rewritten in the file as {"id": <id>, "apagada": true}: its content is gone and
 its id is never reused, so the pages learn about the deletion and never mix up two messages.
@@ -22,7 +29,7 @@ Messages are appended to a JSON Lines file only when someone sends one (polling 
 Valid names come from /srv/www/firelink/config.js (the same file the page uses).
 Standard library only.
 """
-import json, os, platform, re, sqlite3, subprocess, threading, time, urllib.request
+import base64, json, os, platform, re, socket, sqlite3, struct, subprocess, threading, time, urllib.request
 from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -186,7 +193,94 @@ def no_ar(url):
 def status():
     with open("/proc/uptime") as f:
         ligado = int(float(f.read().split()[0]))
-    return {"ligado_seg": ligado, "servicos": {k: no_ar(u) for k, u in SERVICOS.items()}, "agora": int(time.time())}
+    return {"ligado_seg": ligado, "servicos": {k: no_ar(u) for k, u in SERVICOS.items()},
+            "escudo": escudo(), "agora": int(time.time())}
+
+
+# ---------- the shield (AdGuard Home) ----------
+TESTE_DNS = "doubleclick.net"          # on AdGuard's default list; answered with 0.0.0.0 while blocking
+ADGUARD = "http://127.0.0.1:3000"
+CREDENCIAIS = os.path.expanduser("~/.config/firelink/adguard.json")
+PAUSA_MS = 10 * 60 * 1000
+
+
+def pergunta_dns(nome):
+    """A records for nome from 127.0.0.1:53, or None if nobody answers."""
+    ident = int(time.monotonic() * 1000) & 0xFFFF
+    q = struct.pack(">HHHHHH", ident, 0x0100, 1, 0, 0, 0)
+    q += b"".join(bytes([len(p)]) + p.encode() for p in nome.split(".")) + b"\0" + struct.pack(">HH", 1, 1)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.settimeout(1.5)
+        try:
+            s.sendto(q, ("127.0.0.1", 53))
+            r = s.recv(1500)
+        except OSError:
+            return None
+    if len(r) < 12 or struct.unpack(">H", r[:2])[0] != ident:
+        return None
+    respostas = struct.unpack(">H", r[6:8])[0]
+    i = len(q)                                         # the question comes back unchanged
+    ips = []
+    for _ in range(respostas):
+        if i >= len(r):
+            break
+        if r[i] & 0xC0 == 0xC0:                        # compressed name
+            i += 2
+        else:
+            while i < len(r) and r[i]:
+                i += r[i] + 1
+            i += 1
+        if i + 10 > len(r):
+            break
+        tipo, _cls, _ttl, tam = struct.unpack(">HHIH", r[i:i + 10])
+        i += 10
+        if tipo == 1 and tam == 4:
+            ips.append(socket.inet_ntoa(r[i:i + 4]))
+        i += tam
+    return ips
+
+
+def credenciais():
+    try:
+        with open(CREDENCIAIS) as f:
+            d = json.load(f)
+        return f"{d['usuario']}:{d['senha']}"
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def adguard(caminho, dados=None):
+    """Call AdGuard Home's API; None if there are no credentials or it fails."""
+    auth = credenciais()
+    if not auth:
+        return None
+    req = urllib.request.Request(ADGUARD + caminho, method="POST" if dados is not None else "GET")
+    req.add_header("Authorization", "Basic " + base64.b64encode(auth.encode()).decode())
+    if dados is not None:
+        req.data = json.dumps(dados).encode()
+        req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=3) as r:
+            corpo = r.read()
+        return json.loads(corpo) if corpo.strip().startswith(b"{") else {}
+    except Exception:
+        return None
+
+
+def escudo():
+    """{"estado": "erguido" | "baixado" | "caido", "volta_seg": seconds left on a pause, "controle": bool}"""
+    ips = pergunta_dns(TESTE_DNS)
+    if ips is None:
+        return {"estado": "caido", "volta_seg": None, "controle": False}
+    st = adguard("/control/status")
+    volta = None
+    if st and not st.get("protection_enabled", True):
+        ms = st.get("protection_disabled_duration") or 0
+        volta = int(ms / 1000) if ms > 0 else None
+    erguido = bool(ips) and all(ip == "0.0.0.0" for ip in ips)
+    if st is not None:
+        erguido = erguido and st.get("protection_enabled", True)
+    return {"estado": "erguido" if erguido else "baixado", "volta_seg": volta, "controle": st is not None}
 
 
 # ---------- live system monitor ----------
@@ -316,6 +410,7 @@ def sistema():
             "Kavita": versao_kavita(),
             "Samba": versao(comando("/usr/sbin/smbd", "-V")),
             "Caddy": versao(comando("caddy", "version")),
+            "AdGuard": versao(comando("/opt/AdGuardHome/AdGuardHome", "--version")),
         },
     }
 
@@ -377,7 +472,8 @@ class Api(BaseHTTPRequestHandler):
         return pedido if isinstance(pedido, dict) else None
 
     def do_POST(self):
-        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2, "/api/chat/fixar": 0.3, "/api/chat/apagar": 0.3}
+        rotas = {"/api/placar": 0.4, "/api/chat": 0.5, "/api/chat/lido": 0.2, "/api/chat/fixar": 0.3, "/api/chat/apagar": 0.3,
+                 "/api/escudo": 2}
         if self.path not in rotas:
             return self._json(404, {"error": "not found"})
         ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
@@ -389,6 +485,15 @@ class Api(BaseHTTPRequestHandler):
         if pedido is None or pedido.get("quem") not in pessoas():
             return self._json(400, {"error": "invalid request"})
         quem = pedido["quem"]
+
+        if self.path == "/api/escudo":
+            acao = pedido.get("acao")
+            if acao not in ("baixar", "erguer"):
+                return self._json(400, {"error": "invalid request"})
+            dados = {"enabled": False, "duration": PAUSA_MS} if acao == "baixar" else {"enabled": True}
+            if adguard("/control/protection", dados) is None:
+                return self._json(503, {"error": "AdGuard Home did not accept the change"})
+            return self._json(200, {"escudo": escudo()})
 
         if self.path == "/api/placar":
             tipo = pedido.get("tipo")

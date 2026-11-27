@@ -29,6 +29,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 | Kavita | comics (CBZ/CBR/PDF) and books (EPUB/PDF) with per-person reading progress | `:5000` |
 | Caddy | home page and `/api/` proxy | `:80` |
 | firelink-api | service status, Akali's scoreboard and the household chat (Python, standard library only) | `127.0.0.1:8091` |
+| AdGuard Home | DNS for the whole house: blocks trackers, malware and phishing domains and ads, with no query log and no statistics | `:53`, panel `:3000` |
 | nftables | accepts new connections from the home network only | — |
 | smartd + firelink-smart | disk self-tests (short daily, long weekly) and a summary for the home page | — |
 | unattended-upgrades | automatic security updates | — |
@@ -39,7 +40,7 @@ The home page interface is in Brazilian Portuguese, the language of the househol
 page/         home page (a single HTML file) and the household config example
 api/          firelink-api, its systemd unit (template) and the install script
 scripts/      firelink-smart (disk health)
-config/       samba, caddy, nftables, ssh, systemd, cron, apt and disks
+config/       samba, caddy, nftables, ssh, systemd, cron, apt, disks and adguard
 assets/       README banner (rendered from the home page itself)
 ```
 
@@ -59,6 +60,10 @@ A single HTML file with no dependencies besides two Google Fonts.
 - **Server panel:** status lights for Jellyfin and Kavita, uptime, disk health (SMART,
   temperature, last self-test) and Akali's scoreboard of pets and swats per person, shared
   across devices.
+- **The shield:** a pixel heater shield with an ember emblem shows whether AdGuard Home is
+  blocking (raised), paused (lowered, with the minutes left) or not answering (cracked). Anyone
+  at home can lower it for 10 minutes, after the keeper asks to confirm, to open a link that a
+  blocked tracker broke; it rises again by itself.
 - **System monitor:** a one-line summary (CPU, RAM, CPU temperature, disk) that opens, in
   place, into a live monitor in the spirit of the Linux system monitor: a rolling pixel graph
   of CPU use over the last minute with a bar per core, memory in use (without the cache) and
@@ -126,6 +131,11 @@ affiliated with the game or its creators.
    gets Mother's Day greetings. The API reads the names from the same file.
 7. Scripts and API: put the `api/` files and `scripts/firelink-smart` in `~/firelink-api`,
    then run `sudo sh ~/firelink-api/install.sh`.
+8. AdGuard Home: download the release `.tar.gz` and `checksums.txt` into the folder with
+   `config/adguard/`, run `sudo sh install.sh`, then `python3 configurar.py` (sets the panel
+   password and encrypted upstreams), and `sudo sh privacidade.sh` to turn off the query log
+   and statistics. For the shield button, run `python3 ~/firelink-api/guardar-senha-adguard.py`.
+   Finally, point the router's DHCP DNS at the server, with the router itself as secondary.
 
 ## Configuration decisions
 
@@ -138,6 +148,12 @@ affiliated with the game or its creators.
   order `handle` runs before `respond`, so a `reverse_proxy` inside `handle` would bypass
   the filter for `/api/`. Inside `route`, the written order applies. The filter accepts
   the same sources as the firewall (home IPv4 range, loopback and IPv6 link-local).
+- **DNS filtering without a record of who visited what.** AdGuard Home keeps no query log
+  and no statistics, so nothing on the server lists the sites anyone opened. It asks
+  Quad9 and Cloudflare over DNS-over-HTTPS. The router hands out the server as primary DNS
+  and itself as secondary, so the house keeps working, unfiltered, if the server goes down.
+  The page checks the shield with a DNS question for a blocked domain, which needs no
+  password; only pausing uses the panel login, kept in a mode-600 file outside the repository.
 - **Disk with `apm = 254`.** The drive was parking its heads very often (325 thousand load
   cycles recorded); on an always-on server that accelerates wear.
 - **Closing the lid does not suspend** (`logind`), and the sleep targets are masked.
