@@ -154,6 +154,12 @@
     font-size: 20px; letter-spacing: .06em; color: var(--gold);
   }
   .desc { color: var(--muted); font-size: 22px; line-height: 1.1; margin-top: 4px; }
+  /* menu buttons: a pixel icon on the left (magic lantern, tome, sealed letter, shield), title and description on the right */
+  nav a.botao { display: grid; grid-template-columns: 64px 1fr; column-gap: 16px; align-items: center; text-align: left; padding: 12px 18px 12px 14px; }
+  nav .ico { grid-row: 1 / span 2; justify-self: center; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  nav .desc { margin-top: 2px; }
+  nav .ico.brasa { animation: brasa 1.2s steps(2) infinite; }   /* the wax seal glows while there are unread messages */
+  @keyframes brasa { 50% { filter: drop-shadow(0 0 6px rgba(255,120,40,.8)); } }
 
   .disco { margin: 34px var(--px) 0; text-align: left; }
   .disco-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
@@ -205,8 +211,6 @@
   .servidor .ic { display: inline-block; width: 22px; text-align: center; margin-right: 8px; }
   .servidor .bom { color: #9fdc7c; } .servidor .ruim { color: #ff7a5c; }
   /* --- the shield (AdGuard Home): original pixel heater shield with an ember emblem --- */
-  .ic-escudo { display: inline-block; width: 14px; height: 17px; margin: 0 10px 2px 0; vertical-align: middle; }
-  .ic-escudo svg { display: block; width: 100%; height: 100%; shape-rendering: crispEdges; }
   .botao.ocupado { opacity: .6; pointer-events: none; }
   /* --- scoreboard --- */
   .placar { margin: 30px var(--px) 0; text-align: left; }
@@ -317,8 +321,6 @@
   .codinome { color: var(--gold-dark); }
 
   /* --- household chat --- */
-  .ic-chat { display: inline-block; width: 18px; height: 16px; margin: 0 10px 2px 0; vertical-align: middle; }   /* speech balloon with a little flame */
-  .ic-chat svg { display: block; width: 100%; height: 100%; }
   .contador { display: inline-block; margin-left: 10px; padding: 1px 6px 0; background: var(--ember); color: #1b0e05; font-size: 11px; letter-spacing: .04em; vertical-align: 3px; box-shadow: 0 0 10px rgba(255,138,43,.55); animation: pulsoluz 1.2s steps(2) infinite; }
   .chat { position: fixed; inset: 0; z-index: 7; display: flex; justify-content: flex-end; background: rgba(6,4,3,.62); }
   .chat[hidden] { display: none !important; }
@@ -483,19 +485,23 @@
 
   <nav>
     <a class="botao" id="jellyfin" href="#" target="_blank" rel="noopener">
+      <canvas class="ico" data-icone="video" aria-hidden="true"></canvas>
       <div class="titulo"><i class="luz" id="luz-jellyfin" title="verificando..."></i>Videoteca</div>
       <div class="desc">Filmes, animações, séries e aulas</div>
     </a>
     <a class="botao" id="kavita" href="#" target="_blank" rel="noopener">
+      <canvas class="ico" data-icone="livro" aria-hidden="true"></canvas>
       <div class="titulo"><i class="luz" id="luz-kavita" title="verificando..."></i>eBiblioteca</div>
       <div class="desc">Quadrinhos, ficção e acadêmicos</div>
     </a>
     <a class="botao" id="chat-abrir" href="#chat">
-      <div class="titulo"><span class="ic-chat" aria-hidden="true"><svg viewBox="0 0 9 8" shape-rendering="crispEdges"><path fill="#e0b45c" d="M1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM2 7h1v1h-1z"/><path fill="#15100b" d="M1 1h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1z"/><path fill="#ffd36b" d="M4 2h1v1h-1zM4 3h1v1h-1z"/><path fill="#ff9a2e" d="M3 3h1v1h-1zM5 3h1v1h-1zM4 4h1v1h-1z"/><path fill="#ff5a1a" d="M3 4h1v1h-1zM5 4h1v1h-1z"/></svg></span>Chat<span class="contador" id="chat-contador" hidden></span></div>
+      <canvas class="ico" data-icone="chat" aria-hidden="true"></canvas>
+      <div class="titulo">Chat<span class="contador" id="chat-contador" hidden></span></div>
       <div class="desc" id="chat-desc">Conversa da casa, de um computador para o outro</div>
     </a>
     <a class="botao" id="escudo" href="#escudo" role="button">
-      <div class="titulo"><i class="luz" id="luz-escudo" title="verificando..."></i><span class="ic-escudo" id="ic-escudo" aria-hidden="true"></span>Escudo</div>
+      <canvas class="ico" data-icone="escudo" aria-hidden="true"></canvas>
+      <div class="titulo"><i class="luz" id="luz-escudo" title="verificando..."></i>Escudo</div>
       <div class="desc" id="escudo-desc">Anúncios e rastreadores barrados na casa toda</div>
     </a>
   </nav>
@@ -1425,25 +1431,92 @@
     atualizar(); setInterval(atualizar, 60 * 1000);
   })();
 
+  // ---------- menu icons: magic lantern, tome, sealed letter and the shield (original pixel art) ----------
+  // Each icon has frames; hovering or focusing the button plays them (the lantern's beam flickers, the tome's clasp
+  // opens, the seal glows, Akali on the shield blinks and flicks an ear). window.iconeMenu(name, variant) swaps a variant (the cracked shield).
+  (function () {
+    var ICONES = {
+      video: { esc: 3, ms: 140, pal: {'k': '#15100b', 'h': '#e0b45c', 'H': '#9a7430', 'f': '#2a1a10', 'y': '#ffd36b', 'o': '#ff9a2e', 'r': '#ff5a1a', 'B': 'rgba(255,211,107,.22)', 'C': 'rgba(255,211,107,.34)', 'D': 'rgba(255,211,107,.14)', 'Y': 'rgba(255,230,160,.75)'},
+      quadros: [
+        ['..kHHHHHk...........', '...khhhk............', '...kHhhk...........Y', '.kkkhhhkkk........BY', 'kHHHHHHHHHk......BBY', 'kHhhhhhhhHkk....BBBY', 'kHhfffffhHHHk..BBBBY', 'kHhffyffhHHHyBBBBBBY', 'kHhfoyofhHHHyBBBBBBY', 'kHhfrorfhHHHyBBBBBBY', 'kHhfffffhHHHk..BBBBY', 'kHhhhhhhhHkk....BBBY', 'kHHHHHHHHHk......BBY', '.kHHkkkHHk........BY', '.kHHk.kHHk.........Y', '..kk...kk...........'],
+        ['..kHHHHHk...........', '...khhhk............', '...kHhhk...........Y', '.kkkhhhkkk........CY', 'kHHHHHHHHHk......CCY', 'kHhhhhhhhHkk....CCCY', 'kHhfffffhHHHk..CCCCY', 'kHhfffyfhHHHyCCCCCCY', 'kHhfoyofhHHHyCCCCCCY', 'kHhfrorfhHHHyCCCCCCY', 'kHhfffffhHHHk..CCCCY', 'kHhhhhhhhHkk....CCCY', 'kHHHHHHHHHk......CCY', '.kHHkkkHHk........CY', '.kHHk.kHHk.........Y', '..kk...kk...........'],
+        ['..kHHHHHk...........', '...khhhk............', '...kHhhk...........Y', '.kkkhhhkkk........DY', 'kHHHHHHHHHk......DDY', 'kHhhhhhhhHkk....DDDY', 'kHhfffffhHHHk..DDDDY', 'kHhffyffhHHHyDDDDDDY', 'kHhfoyofhHHHyDDDDDDY', 'kHhfrorfhHHHyDDDDDDY', 'kHhfffffhHHHk..DDDDY', 'kHhhhhhhhHkk....DDDY', 'kHHHHHHHHHk......DDY', '.kHHkkkHHk........DY', '.kHHk.kHHk.........Y', '..kk...kk...........'],
+        ['..kHHHHHk...........', '...khhhk............', '...kHhhk...........Y', '.kkkhhhkkk........CY', 'kHHHHHHHHHk......CCY', 'kHhhhhhhhHkk....CCCY', 'kHhfffffhHHHk..CCCCY', 'kHhfffyfhHHHyCCCCCCY', 'kHhfoyofhHHHyCCCCCCY', 'kHhfrorfhHHHyCCCCCCY', 'kHhfffffhHHHk..CCCCY', 'kHhhhhhhhHkk....CCCY', 'kHHHHHHHHHk......CCY', '.kHHkkkHHk........CY', '.kHHk.kHHk.........Y', '..kk...kk...........']
+      ] },
+      livro: { esc: 3, ms: 0, pal: {'k': '#15100b', 'R': '#6b2a22', 'Q': '#4a1c17', 'w': '#efe2c6', 'l': '#a89272', 'h': '#e0b45c', 'H': '#9a7430', 'y': '#ffd36b', 'o': '#ff9a2e'},
+      quadros: [
+        ['................', '................', '.kkkkkkkkkkkkk..', 'kQQRRRRRRRRRRRk.', 'kQQhRRRRRRRRhwwk', 'kQQRRRRRRRRRRwlk', 'kQQRRRRhRRRRRwwk', 'kQQRRRhohRRhhhhk', 'kQQRRhoyohRhHhHk', 'kQQRRRhohRRhhhhk', 'kQQRRRRhRRRRRwwk', 'kQQRRRRRRRRRRwlk', 'kQQhRRRRRRRRhwwk', 'kQQRRRRRRRRRRwwk', '.kkkkkkkkkkkkkk.', '................'],
+        ['................', '................', '.kkkkkkkkkkkkk..', 'kQQRRRRRRRRRRRk.', 'kQQhRRRRRRRRhwwk', 'kQQRRRRRRRRRRylk', 'kQQRRRRhRRRRRwwk', 'kQQRRRhohRRRRylk', 'kQQRRhoyohRRRwwh', 'kQQRRRhohRRRRylh', 'kQQRRRRhRRRRRwwh', 'kQQRRRRRRRRRRylh', 'kQQhRRRRRRRRhwwh', 'kQQRRRRRRRRRRwwH', '.kkkkkkkkkkkkkkk', '................']
+      ] },
+      chat: { esc: 3, ms: 260, pal: {'k': '#15100b', 'w': '#efe2c6', 'l': '#a89272', 'S': '#b8322a', 'Z': '#8a2420', 'y': '#ffd36b', 'o': '#ff9a2e', 'r': '#ff5a1a'},
+      quadros: [
+        ['................', '................', '.kkkkkkkkkkkkkk.', 'klwwwwwwwwwwwwlk', 'kwlwwwwwwwwwwlwk', 'kwwlwwwwwwwwlwwk', 'kwwwlwwwwwwlwwwk', 'kwwwwlSSSSlwwwwk', 'kwwwwSSoZSSwwwwk', 'kwwwwSSZSSSwwwwk', 'kwwwwwSSSSwwwwwk', 'kwwwwwwwwwwwwwwk', 'kwwwwwwwwwwwwwwk', '.kkkkkkkkkkkkkk.', '................', '................'],
+        ['................', '................', '.kkkkkkkkkkkkkk.', 'klwwwwwwwwwwwwlk', 'kwlwwwwwwwwwwlwk', 'kwwlwwwwwwwwlwwk', 'kwwwlwwwwwwlwwwk', 'kwwwwlSSSSlwwwwk', 'kwwwwSoyoSSwwwwk', 'kwwwwSSorSSwwwwk', 'kwwwwwSSSSwwwwwk', 'kwwwwwwwwwwwwwwk', 'kwwwwwwwwwwwwwwk', '.kkkkkkkkkkkkkk.', '................', '................']
+      ] },
+      escudo: { esc: 3, ms: 180, pal: {'k': '#15100b', 'i': '#9a8b78', 'I': '#6b5f52', 'w': '#6e4f34', 'W': '#5a3f29', 'F': '#f4f1ea', 'B': '#2e221c', 'b': '#6e5242', 'n': '#e2b9b9', 'p': '#e9a3a6', 'E': '#8fd3f5', 'K': '#15100b', 'a': '#8a8278', 'A': '#3a342e', 'c': '#0a0806'},
+      quadros: [
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBKBFFKFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWwwIk', 'kiwBBWwwwwWbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....'],
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiiiiiIk', 'kiwBwWwwwwWbwIk', 'kiwBBWwwwwbbwIk', 'kiwBnBFFFbnbwIk', 'kiwBBBBFFFFFwIk', 'kiwBBEBFFEFFwIk', 'kiwBBBFFFFFFwIk', 'kiwwFFFpFFFwwIk', 'kiwwwFFFFFWwwIk', 'kIIIIIIIIIIIIIk', '.kiwwWwwwwWwIk.', '.kiwwWwwwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....']
+      ] },
+      escudo_rachado: { esc: 3, ms: 0, pal: {'k': '#15100b', 'i': '#6b6158', 'I': '#4d453d', 'w': '#4a382a', 'W': '#3d2e22', 'F': '#f4f1ea', 'B': '#2e221c', 'b': '#6e5242', 'n': '#e2b9b9', 'p': '#e9a3a6', 'E': '#8fd3f5', 'K': '#15100b', 'a': '#8a8278', 'A': '#3a342e', 'c': '#0a0806'},
+      quadros: [
+        ['.kkkkkkkkkkkkk.', 'kiiiiiiiiciiiIk', 'kiwAwWwwwcWAwIk', 'kiwAAWwwcwAAwIk', 'kiwAaAaacAaAwIk', 'kiwAAAAcaaaawIk', 'kiwAAKAcaKaawIk', 'kiwAAAaacaaawIk', 'kiwwaaaacaawwIk', 'kiwwwaacaaWwwIk', 'kIIIIIcIIIIIIIk', '.kiwwWcwwwWwIk.', '.kiwwWwcwwWwIk.', '..kiwWwwwWwIk..', '..kiwwwwwwwIk..', '...kiwwwwwIk...', '....kiiiiIk....', '.....kkkkk.....']
+      ] }
+    };
+    function pintar(c, ic, q) {
+      var f = ic.quadros[q], w = f[0].length, h = f.length, x = c.getContext('2d');
+      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; c.style.width = w * ic.esc + 'px'; c.style.height = h * ic.esc + 'px'; }
+      x.clearRect(0, 0, w, h);
+      f.forEach(function (l, y) { for (var i = 0; i < w; i++) { var k = ic.pal[l[i]]; if (k) { x.fillStyle = k; x.fillRect(i, y, 1, 1); } } });
+    }
+    var estado = {};
+    document.querySelectorAll('nav canvas.ico').forEach(function (c) {
+      var nome = c.dataset.icone, st = estado[nome] = { c: c, nome: nome, q: 0, timer: null, brasa: false };
+      pintar(c, ICONES[nome], 0);
+      var botao = c.closest('a');
+      function comecar() {
+        var ic = ICONES[st.nome]; clearInterval(st.timer);
+        if (ic.quadros.length < 2) return;
+        if (!ic.ms) { pintar(c, ic, 1); return; }                       // two-state (the tome stays open while hovered)
+        st.timer = setInterval(function () { st.q = (st.q + 1) % ic.quadros.length; pintar(c, ic, st.q); }, ic.ms);
+      }
+      function parar() { clearInterval(st.timer); st.timer = null; st.q = 0; if (!st.brasa) pintar(c, ICONES[st.nome], 0); }
+      botao.addEventListener('mouseenter', comecar); botao.addEventListener('focus', comecar);
+      botao.addEventListener('mouseleave', parar); botao.addEventListener('blur', parar);
+    });
+    window.iconeMenu = function (nome, variante) {
+      var st = estado[nome]; if (!st) return;
+      var alvo = variante ? nome + '_' + variante : nome;
+      if (st.nome === alvo) return;
+      st.nome = alvo; clearInterval(st.timer); st.timer = null; st.q = 0; pintar(st.c, ICONES[alvo], 0);
+    };
+    // unread messages: the seal glows like an ember
+    var contador = document.getElementById('chat-contador'), carta = estado.chat;
+    if (contador && carta) {
+      var ver = function () {
+        carta.brasa = !contador.hidden; carta.c.classList.toggle('brasa', carta.brasa);
+        if (!carta.timer) pintar(carta.c, ICONES.chat, carta.brasa ? 1 : 0);
+      };
+      new MutationObserver(ver).observe(contador, { attributes: true, attributeFilter: ['hidden'] }); ver();
+    }
+  })();
+
   // ---------- the shield: AdGuard Home blocking ads and trackers for the whole house ----------
   // A menu button. State arrives with /api/status (every minute); tapping it lowers the shield
   // for 10 minutes (after the keeper asks) or raises it again.
   (function () {
     var btn = document.getElementById('escudo'), desc = document.getElementById('escudo-desc'),
-        ic = document.getElementById('ic-escudo'), luzEl = document.getElementById('luz-escudo');
+        luzEl = document.getElementById('luz-escudo');
     var estado = null, desde = 0, tic = null;
-    var cores = { k: '#15100b', i: '#8f8170', f: '#4a3a2c', y: '#ffd36b', o: '#ff9a2e', r: '#ff5a1a' };
-    var rachado = { k: '#15100b', i: '#6b6158', f: '#332b24', c: '#0a0806', a: '#5a5046' };
-    var INTEIRO = ['kkkkkkkkk', 'kiiiiiiik', 'kiffyffik', 'kiffoyfik', 'kifoyofik', 'kifryorik', 'kifrrrfik',
-                   '.kifffik.', '.kiiiiik.', '..kiiik..', '...kkk...'];
-    var QUEBRADO = ['kkkkkkkkk', 'kiiiiciik', 'kifffcfik', 'kiffcffik', 'kiffcffik', 'kifcfffik', 'kiffcffik',
-                    '.kifcfik.', '.kiaaiik.', '..kiiik..', '...kkk...'];
-    function svg(linhas, p) {
-      var r = '';
-      linhas.forEach(function (l, y) { for (var x = 0; x < l.length; x++) if (p[l[x]]) r += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + p[l[x]] + '"/>'; });
-      return '<svg viewBox="0 0 9 11">' + r + '</svg>';
-    }
-    ic.innerHTML = svg(INTEIRO, cores);
+    function icone(rachado) { if (window.iconeMenu) window.iconeMenu('escudo', rachado ? 'rachado' : ''); }
     function minutos(seg) { var m = Math.max(1, Math.ceil(seg / 60)); return m + ' min'; }
     function guardia(t) {
       var eu = window.quemEsta && window.quemEsta();
@@ -1455,15 +1528,15 @@
       var resta = estado.volta_seg ? estado.volta_seg - Math.floor((Date.now() - desde) / 1000) : null;
       if (resta !== null && resta <= 0) { buscar(); resta = 1; }
       if (estado.estado === 'erguido') {
-        ic.innerHTML = svg(INTEIRO, cores); luz(true, 'erguido');
+        icone(false); luz(true, 'erguido');
         desc.textContent = 'Anúncios e rastreadores barrados';
         btn.title = 'Bloqueio de anúncios, rastreadores e golpes na rede da casa (AdGuard Home). Não guarda os sites acessados.';
       } else if (estado.estado === 'baixado') {
-        ic.innerHTML = svg(QUEBRADO, rachado); luz(false, 'baixado');
+        icone(true); luz(false, 'baixado');
         desc.textContent = resta ? 'Baixado · volta sozinho em ' + minutos(resta) : 'Baixado';
         btn.title = 'O bloqueio de anúncios está pausado.';
       } else {
-        ic.innerHTML = svg(QUEBRADO, rachado); luz(false, 'fora do ar');
+        icone(true); luz(false, 'fora do ar');
         desc.textContent = 'Fora do ar · a internet segue, sem bloqueio';
         btn.title = 'O AdGuard Home não respondeu. Os aparelhos usam o DNS do roteador, sem bloqueio.';
       }

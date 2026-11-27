@@ -60,8 +60,15 @@ A single HTML file with no dependencies besides two Google Fonts.
 - **Server panel:** status lights for Jellyfin and Kavita, uptime, disk health (SMART,
   temperature, last self-test) and Akali's scoreboard of pets and swats per person, shared
   across devices.
-- **The shield:** a menu button with a pixel heater shield (ember emblem) and a status light shows whether AdGuard Home is
-  blocking (raised), paused (lowered, with the minutes left) or not answering (cracked). Anyone
+- **Menu icons:** each menu button has a pixel icon in the page's style: a magic lantern
+  casting a beam for the video library, a red tome with a gold clasp for the e-library, a
+  letter sealed with wax for the chat (the seal glows like an ember while there are unread
+  messages) and a wooden shield bearing Akali's face. Hovering plays a small animation: the
+  lantern's beam flickers, the clasp comes undone, the seal lights up, Akali blinks and
+  flicks an ear.
+- **The shield:** the shield button and its status light show whether AdGuard Home is
+  blocking (raised), paused (lowered, with the minutes left) or not answering (the shield
+  cracks and Akali's face turns grey). Anyone
   at home can lower it for 10 minutes, after the keeper asks to confirm, to open a link that a
   blocked tracker broke; it rises again by itself.
 - **System monitor:** a one-line summary (CPU, RAM, CPU temperature, disk) that opens, in
