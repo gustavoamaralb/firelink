@@ -1,0 +1,125 @@
+/* Firelink - Kavita sign-in screens (login, register, password reset).
+   Kavita draws these before it knows who is signing in, always with its
+   built-in look, so no site theme reaches them. This file is linked from
+   Kavita's index.html by instalar-login.sh and only matches the splash
+   container those screens share. Same palette and art as firelink.css. */
+@font-face {
+    font-family: "Silkscreen Firelink";
+    font-style: normal; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,@@SILKSCREEN@@) format("woff2");
+}
+@font-face {
+    font-family: "Cinzel Firelink";
+    font-style: normal; font-weight: 400 900; font-display: swap;
+    src: url(data:font/woff2;base64,@@CINZEL@@) format("woff2");
+}
+
+app-splash-container {
+    --fl-crypt: #16131c;
+    --fl-bone: #e8e2d4;
+    --fl-ash: #a39b8c;
+    --fl-ember: #ffb86c;
+    --fl-ember-2: #f0994a;
+    --fl-bronze: rgba(201, 160, 99, .28);
+    --fl-fogueira: url(data:image/png;base64,@@FOGUEIRA@@);
+    --fl-fogueira-parada: url(data:image/png;base64,@@FOGUEIRA_PARADA@@);
+    --fl-akali: url(data:image/png;base64,@@AKALI@@);
+
+    --primary-color: var(--fl-ember);
+    --primary-color-dark-shade: var(--fl-ember-2);
+    --primary-color-darker-shade: #c96f2e;
+    --body-text-color: var(--fl-bone);
+    --login-background-url: none;
+    --login-background-color: var(--fl-crypt);
+    --login-background-opacity: 0;
+    --login-card-bg-color: #1b1722;
+    --login-card-border-color: var(--fl-ember);
+    --login-input-background-color: #262030;
+    --login-input-color: var(--fl-bone);
+    --login-input-box-shadow-focus: 0 0 0 .0625rem rgba(255, 184, 108, .8);
+    --login-forgot-password-color: var(--fl-ember);
+    /* Kavita draws the logo from these variables: the bonfire sheet, 3x */
+    --login-logo-image: var(--fl-fogueira);
+    --login-logo-width: 78px;
+    --login-logo-height: 126px;
+    --login-logo-bg-size: 624px 126px;
+    --login-logo-bg-repeat: no-repeat;
+    --input-focus-boxshadow-color: rgba(255, 184, 108, .35);
+    --input-bg-color: #262030;
+    --input-text-color: var(--fl-bone);
+    --input-placeholder-color: rgba(232, 226, 212, .45);
+    --btn-focus-boxshadow-color: rgba(255, 184, 108, .45);
+}
+
+/* The crypt, with the bonfire's glow rising from below */
+app-splash-container .login {
+    background-color: var(--fl-crypt);
+    background-image:
+        radial-gradient(ellipse 60% 40% at 50% 62%, rgba(255, 140, 50, .16), transparent 70%),
+        radial-gradient(ellipse 120% 90% at 50% 45%, transparent 50%, rgba(0, 0, 0, .6) 100%);
+    max-width: none;
+}
+app-splash-container .login::before,
+app-splash-container .login::after { background-image: none !important; opacity: 0 !important; }
+
+/* Bonfire (3x, crackling) above the FIRELINK wordmark. Kavita's own rules
+   carry component attributes, so a few declarations need !important. */
+app-splash-container .login > .logo-container .logo {
+    image-rendering: pixelated;
+    animation: fl-login-crepita 1.36s steps(8) infinite;
+}
+@keyframes fl-login-crepita { from { background-position: 0 0; } to { background-position: -624px 0; } }
+app-splash-container .login > .logo-container h2 {
+    display: flex !important; flex-direction: column; align-items: center;
+    margin: 6px 0 34px !important;   /* room for Akali asleep on the card */
+    font-size: 0 !important; line-height: 0;
+}
+app-splash-container .login > .logo-container h2::after {
+    content: "FIRELINK"; display: block;
+    font: 700 2.4rem/1.1 "Silkscreen Firelink", monospace; letter-spacing: .08em;
+    color: #ffd36b; text-shadow: 3px 3px 0 #3a2410, 0 0 20px rgba(255, 140, 50, .3);
+}
+app-splash-container .login > .logo-container h2::before {
+    content: "eBiblioteca"; display: block; order: 2;
+    font: 500 1rem/1.4 "Cinzel Firelink", Georgia, serif; letter-spacing: .12em; color: var(--fl-ash);
+}
+
+/* The card: old stone, bronze hairline, ember on top */
+app-splash-container .card {
+    background-color: #1b1722;
+    border: 1px solid var(--fl-bronze);
+    border-top: 3px solid var(--fl-ember);
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, .55), 0 0 1.2rem rgba(255, 140, 50, .08);
+    position: relative;
+}
+app-splash-container .card .card-title h2 {
+    font-family: "Cinzel Firelink", Georgia, serif !important; font-weight: 600 !important;
+    font-size: 1rem !important;
+    letter-spacing: .04em; color: var(--fl-bone);
+}
+app-splash-container .card input.form-control {
+    background-color: #262030 !important; color: var(--fl-bone) !important;
+    border: 1px solid rgba(201, 160, 99, .25) !important;
+}
+app-splash-container .card input.form-control:focus {
+    border-color: var(--fl-ember) !important; box-shadow: 0 0 0 .15rem rgba(255, 184, 108, .3) !important;
+}
+app-splash-container .card .btn {
+    color: #1a1208; background-color: var(--fl-ember); border-color: var(--fl-ember); font-weight: 600;
+}
+app-splash-container .card .btn:hover,
+app-splash-container .card .btn:focus { background-color: var(--fl-ember-2); border-color: var(--fl-ember-2); color: #1a1208; }
+app-splash-container .card a { color: var(--fl-ember); }
+
+/* Akali asleep on top of the card */
+app-splash-container .login-container .card::before {
+    content: ""; position: absolute; right: 6px; bottom: 100%;
+    width: 68px; height: 44px; margin-bottom: 1px;
+    background: var(--fl-akali) center / 68px 44px no-repeat;
+    image-rendering: pixelated; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    app-splash-container { --login-logo-image: var(--fl-fogueira-parada); --login-logo-bg-size: 78px 126px; }
+    app-splash-container .login > .logo-container .logo { animation: none; }
+}

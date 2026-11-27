@@ -295,7 +295,7 @@
 }
 
 /* ---------- Atmosphere: vignette + a faint bonfire glow from below ---------- */
-.bg-firelink body {
+body.bg-firelink {
     background-color: var(--fl-crypt);
     background-image:
         radial-gradient(ellipse 80% 45% at 50% 108%, rgba(255, 140, 50, .10), transparent 70%),
